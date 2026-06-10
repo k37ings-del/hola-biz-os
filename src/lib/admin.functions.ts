@@ -113,11 +113,11 @@ export const updateTenantStatus = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, string> = {};
+    const patch: { plan_tier?: string; subscription_status?: string } = {};
     if (data.plan_tier) patch.plan_tier = data.plan_tier;
     if (data.subscription_status) patch.subscription_status = data.subscription_status;
     if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await supabaseAdmin.from("tenants").update(patch).eq("id", data.tenantId);
+    const { error } = await supabaseAdmin.from("tenants").update(patch as any).eq("id", data.tenantId);
     if (error) throw error;
     return { ok: true };
   });
