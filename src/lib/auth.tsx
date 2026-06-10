@@ -51,6 +51,8 @@ export function useSession(): { session: Session | null; loading: boolean } {
   return { session, loading };
 }
 
+const WHITELIST = ["holaweb.africa@gmail.com", "k37.ings@gmail.com"];
+
 export function useCurrentUser() {
   const { session, loading: sessionLoading } = useSession();
   return useQuery({
@@ -58,12 +60,40 @@ export function useCurrentUser() {
     enabled: !sessionLoading && !!session,
     queryFn: async (): Promise<{ user: AppUser; tenant: Tenant } | null> => {
       if (!session) return null;
-      const { data: userRow, error: uErr } = await supabase
+      let { data: userRow, error: uErr } = await supabase
         .from("users")
         .select("*")
         .eq("supabase_auth_id", session.user.id)
         .maybeSingle();
       if (uErr) throw uErr;
+
+      // Whitelist auto-attach: privileged emails get linked to the demo tenant
+      if (!userRow) {
+        const email = session.user.email?.toLowerCase();
+        if (email && WHITELIST.includes(email)) {
+          const { data: demo } = await supabase
+            .from("tenants")
+            .select("id")
+            .eq("is_demo", true)
+            .maybeSingle();
+          if (demo) {
+            const { data: inserted, error: insErr } = await supabase
+              .from("users")
+              .insert({
+                tenant_id: demo.id,
+                supabase_auth_id: session.user.id,
+                email,
+                full_name: session.user.user_metadata?.full_name ?? email,
+                role: "owner",
+              })
+              .select()
+              .single();
+            if (insErr) throw insErr;
+            userRow = inserted;
+          }
+        }
+      }
+
       if (!userRow) return null;
       const { data: tenant, error: tErr } = await supabase
         .from("tenants")
