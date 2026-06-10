@@ -71,7 +71,7 @@ function AuthenticatedLayout() {
         <Sidebar collapsible="icon">
           <SidebarHeader className="border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-2 py-3">
-              <div className="h-8 w-8 rounded-md bg-white flex items-center justify-center shrink-0 p-1">
+              <div className="h-40 w-40 rounded-md bg-white flex items-center justify-center shrink-0 p-2 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-1">
                 <img src={holawebLogo.url} alt="Holaweb" className="h-full w-auto" />
               </div>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
