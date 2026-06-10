@@ -148,7 +148,6 @@ const step3Schema = z.object({
 });
 const step5Schema = z.object({
   service_name: z.string().trim().min(2).max(120),
-  duration_minutes: z.coerce.number().int().min(5).max(600),
   price: z.coerce.number().min(0),
 });
 
@@ -229,7 +228,7 @@ function SignUpWizard() {
       const { error: svcErr } = await supabase.from("services").insert({
         tenant_id: tenant.id,
         name: d.step5.service_name,
-        duration_minutes: d.step5.duration_minutes,
+        duration_minutes: 60,
         price_cents: Math.round(d.step5.price * 100),
         currency: country.currency,
         active: true,
@@ -359,15 +358,12 @@ function Step4({ defaults, onBack, onNext }: { defaults: typeof DEFAULT_BUSINESS
 
 function Step5({ country, defaults, submitting, onBack, onNext }: { country: string; defaults?: z.infer<typeof step5Schema>; submitting: boolean; onBack: () => void; onNext: (v: z.infer<typeof step5Schema>) => void }) {
   const { symbol, currency } = getCurrencyForCountry(country);
-  const form = useForm<z.infer<typeof step5Schema>>({ resolver: zodResolver(step5Schema), defaultValues: defaults ?? { service_name: "", duration_minutes: 60, price: 0 } });
+  const form = useForm<z.infer<typeof step5Schema>>({ resolver: zodResolver(step5Schema), defaultValues: defaults ?? { service_name: "", price: 0 } });
   return (
     <form onSubmit={form.handleSubmit(onNext)} className="space-y-4">
       <p className="text-xs text-muted-foreground">Add your first service to start taking bookings.</p>
       <div className="space-y-1.5"><Label>Service name</Label><Input {...form.register("service_name")} placeholder="e.g. Consultation" />{form.formState.errors.service_name && <p className="text-xs text-danger">{form.formState.errors.service_name.message}</p>}</div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label>Duration (minutes)</Label><Input type="number" min={5} {...form.register("duration_minutes")} /></div>
-        <div className="space-y-1.5"><Label>Price ({currency} {symbol})</Label><Input type="number" min={0} step="0.01" {...form.register("price")} /></div>
-      </div>
+      <div className="space-y-1.5"><Label>Price ({currency} {symbol})</Label><Input type="number" min={0} step="0.01" {...form.register("price")} /></div>
       <div className="flex gap-2"><Button type="button" variant="outline" onClick={onBack} disabled={submitting}><ArrowLeft className="h-4 w-4" /> Back</Button><Button type="submit" className="flex-1" disabled={submitting}>{submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Create workspace</Button></div>
     </form>
   );
