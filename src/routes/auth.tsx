@@ -36,11 +36,9 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/40 px-4 py-12">
       <div className="w-full max-w-xl">
-        <div className="flex items-center gap-2 justify-center mb-6">
-          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">H</span>
-          </div>
-          <span className="font-semibold text-xl tracking-tight">Holaweb Business OS</span>
+        <div className="flex items-center gap-3 justify-center mb-8">
+          <img src={holawebLogo.url} alt="Holaweb" className="h-8 w-auto" />
+          <span className="font-subhead text-sm uppercase tracking-[0.18em] text-muted-foreground">Business OS</span>
         </div>
         <Tabs defaultValue="signin">
           <TabsList className="grid grid-cols-2 w-full">

@@ -68,14 +68,14 @@ function AuthenticatedLayout() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <Sidebar collapsible="icon">
-          <SidebarHeader className="border-b">
-            <div className="flex items-center gap-2 px-2 py-2">
-              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center shrink-0">
-                <span className="text-primary-foreground font-bold">H</span>
+          <SidebarHeader className="border-b border-sidebar-border">
+            <div className="flex items-center gap-2 px-2 py-3">
+              <div className="h-8 w-8 rounded-md bg-white flex items-center justify-center shrink-0 p-1">
+                <img src={holawebLogo.url} alt="Holaweb" className="h-full w-auto" />
               </div>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                <p className="text-sm font-semibold truncate">{tenant.name}</p>
-                <Badge variant="secondary" className="text-[10px] uppercase mt-0.5">{tenant.plan_tier}</Badge>
+                <p className="text-sm font-semibold truncate text-sidebar-foreground">{tenant.name}</p>
+                <Badge variant="secondary" className="text-[10px] uppercase mt-0.5 bg-sidebar-accent text-sidebar-accent-foreground border-0">{tenant.plan_tier}</Badge>
               </div>
             </div>
           </SidebarHeader>
