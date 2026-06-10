@@ -666,6 +666,7 @@ export type Database = {
           email: string | null
           id: string
           industry: string | null
+          is_admin_workspace: boolean
           is_demo: boolean
           name: string
           plan_tier: string
@@ -682,6 +683,7 @@ export type Database = {
           email?: string | null
           id?: string
           industry?: string | null
+          is_admin_workspace?: boolean
           is_demo?: boolean
           name: string
           plan_tier?: string
@@ -698,6 +700,7 @@ export type Database = {
           email?: string | null
           id?: string
           industry?: string | null
+          is_admin_workspace?: boolean
           is_demo?: boolean
           name?: string
           plan_tier?: string
