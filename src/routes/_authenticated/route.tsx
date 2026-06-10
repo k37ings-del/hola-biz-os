@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Inbox, Users, Calendar, Scissors, UserCog, FileText, CreditCard, Settings, Shield, LogOut, Loader2 } from "lucide-react";
+import { LayoutDashboard, Inbox, Users, Calendar, Scissors, UserCog, FileText, CreditCard, Settings, Shield, LogOut, Loader2, Eye } from "lucide-react";
 import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -96,15 +96,26 @@ function AuthenticatedLayout() {
                     </SidebarMenuItem>
                   ))}
                   {canSeeAdmin && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
-                        <Link to="/admin">
-                          <Shield className="h-4 w-4" />
-                          <span>Admin</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith("/demo")}>
+                          <Link to="/demo">
+                            <Eye className="h-4 w-4" />
+                            <span>Demo</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
+                          <Link to="/admin">
+                            <Shield className="h-4 w-4" />
+                            <span>Admin</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </>
                   )}
+
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
