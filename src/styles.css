@@ -2,9 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-/* Brand fonts: Garet (heading) via Fontshare, Noto Sans + Poppins via Google */
-@import url("https://api.fontshare.com/v2/css?f[]=garet@400,500,600,700,800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap");
+/* Brand fonts loaded via <link> tags in src/routes/__root.tsx (Garet/Fontshare, Noto Sans/Poppins/Google) */
 
 @custom-variant dark (&:is(.dark *));
 
