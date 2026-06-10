@@ -71,7 +71,7 @@ export function useCurrentUser() {
         .eq("id", userRow.tenant_id)
         .single();
       if (tErr) throw tErr;
-      return { user: userRow as AppUser, tenant: tenant as Tenant };
+      return { user: userRow as unknown as AppUser, tenant: tenant as unknown as Tenant };
     },
   });
 }
