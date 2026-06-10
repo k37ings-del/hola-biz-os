@@ -184,19 +184,18 @@ function SignUpWizard() {
         if (siErr) throw siErr;
       }
 
-      // Whitelisted internal emails: attach to demo tenant, skip new-workspace creation
+      // Whitelisted internal emails: attach to Holaweb HQ admin workspace
       const WHITELIST = ["holaweb.africa@gmail.com", "k37.ings@gmail.com"];
       if (WHITELIST.includes(d.step2.email.toLowerCase())) {
-        const { data: demo } = await supabase.from("tenants").select("id").eq("is_demo", true).maybeSingle();
-        if (demo) {
-          await supabase.from("users").insert({
-            tenant_id: demo.id, supabase_auth_id: authUserId, full_name: d.step2.full_name, email: d.step2.email, role: "owner",
-          });
-          toast.success("Welcome back — attached to demo workspace");
-          navigate({ to: "/dashboard" });
-          return;
-        }
+        const HQ_ID = "22222222-2222-2222-2222-222222222222";
+        await supabase.from("users").insert({
+          tenant_id: HQ_ID, supabase_auth_id: authUserId, full_name: d.step2.full_name, email: d.step2.email, role: "owner",
+        });
+        toast.success("Welcome back — attached to Holaweb HQ");
+        navigate({ to: "/admin" });
+        return;
       }
+
 
 
       const { data: tenant, error: tErr } = await supabase

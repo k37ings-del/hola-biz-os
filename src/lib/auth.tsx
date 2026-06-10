@@ -67,32 +67,27 @@ export function useCurrentUser() {
         .maybeSingle();
       if (uErr) throw uErr;
 
-      // Whitelist auto-attach: privileged emails get linked to the demo tenant
+      // Whitelist auto-attach: privileged emails get linked to Holaweb HQ tenant
       if (!userRow) {
         const email = session.user.email?.toLowerCase();
         if (email && WHITELIST.includes(email)) {
-          const { data: demo } = await supabase
-            .from("tenants")
-            .select("id")
-            .eq("is_demo", true)
-            .maybeSingle();
-          if (demo) {
-            const { data: inserted, error: insErr } = await supabase
-              .from("users")
-              .insert({
-                tenant_id: demo.id,
-                supabase_auth_id: session.user.id,
-                email,
-                full_name: session.user.user_metadata?.full_name ?? email,
-                role: "owner",
-              })
-              .select()
-              .single();
-            if (insErr) throw insErr;
-            userRow = inserted;
-          }
+          const HQ_ID = "22222222-2222-2222-2222-222222222222";
+          const { data: inserted, error: insErr } = await supabase
+            .from("users")
+            .insert({
+              tenant_id: HQ_ID,
+              supabase_auth_id: session.user.id,
+              email,
+              full_name: session.user.user_metadata?.full_name ?? email,
+              role: "owner",
+            })
+            .select()
+            .single();
+          if (insErr) throw insErr;
+          userRow = inserted;
         }
       }
+
 
       if (!userRow) return null;
       const { data: tenant, error: tErr } = await supabase
