@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { COUNTRIES, INDUSTRIES, DEFAULT_BUSINESS_HOURS, DAYS, getCurrencyForCountry } from "@/lib/constants";
+import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
