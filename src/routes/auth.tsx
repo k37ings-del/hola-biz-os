@@ -38,7 +38,7 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/40 px-4 py-12">
       <div className="w-full max-w-xl">
         <div className="flex items-center gap-3 justify-center mb-8">
-          <img src={holawebLogo.url} alt="Holaweb" className="h-8 w-auto" />
+          <img src={holawebLogo.url} alt="Holaweb" className="h-40 w-auto" />
           <span className="font-subhead text-sm uppercase tracking-[0.18em] text-muted-foreground">Business OS</span>
         </div>
         <Tabs defaultValue="signin">
