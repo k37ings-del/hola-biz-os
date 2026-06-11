@@ -96,11 +96,13 @@ export type Database = {
       bookings: {
         Row: {
           amount_cents: number
+          cancellation_reason: string | null
           created_at: string
           currency: string
           customer_id: string | null
           ends_at: string
           id: string
+          no_show_reason: string | null
           notes: string | null
           ref_code: string
           service_id: string | null
@@ -108,14 +110,17 @@ export type Database = {
           starts_at: string
           status: string
           tenant_id: string
+          updated_at: string
         }
         Insert: {
           amount_cents: number
+          cancellation_reason?: string | null
           created_at?: string
           currency: string
           customer_id?: string | null
           ends_at: string
           id?: string
+          no_show_reason?: string | null
           notes?: string | null
           ref_code: string
           service_id?: string | null
@@ -123,14 +128,17 @@ export type Database = {
           starts_at: string
           status?: string
           tenant_id: string
+          updated_at?: string
         }
         Update: {
           amount_cents?: number
+          cancellation_reason?: string | null
           created_at?: string
           currency?: string
           customer_id?: string | null
           ends_at?: string
           id?: string
+          no_show_reason?: string | null
           notes?: string | null
           ref_code?: string
           service_id?: string | null
@@ -138,6 +146,7 @@ export type Database = {
           starts_at?: string
           status?: string
           tenant_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -172,6 +181,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          assigned_staff_id: string | null
           created_at: string
           customer_id: string
           id: string
@@ -182,6 +192,7 @@ export type Database = {
           unread_count: number
         }
         Insert: {
+          assigned_staff_id?: string | null
           created_at?: string
           customer_id: string
           id?: string
@@ -192,6 +203,7 @@ export type Database = {
           unread_count?: number
         }
         Update: {
+          assigned_staff_id?: string | null
           created_at?: string
           customer_id?: string
           id?: string
@@ -202,6 +214,13 @@ export type Database = {
           unread_count?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_assigned_staff_id_fkey"
+            columns: ["assigned_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_customer_id_fkey"
             columns: ["customer_id"]
@@ -227,7 +246,9 @@ export type Database = {
           email: string | null
           first_seen: string
           id: string
+          last_seen_at: string | null
           notes: string | null
+          status: string
           tags: Json
           tenant_id: string
           wa_phone: string | null
@@ -240,7 +261,9 @@ export type Database = {
           email?: string | null
           first_seen?: string
           id?: string
+          last_seen_at?: string | null
           notes?: string | null
+          status?: string
           tags?: Json
           tenant_id: string
           wa_phone?: string | null
@@ -253,7 +276,9 @@ export type Database = {
           email?: string | null
           first_seen?: string
           id?: string
+          last_seen_at?: string | null
           notes?: string | null
+          status?: string
           tags?: Json
           tenant_id?: string
           wa_phone?: string | null
@@ -360,12 +385,51 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          id: string
+          name: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
           conversation_id: string
           created_at: string
           customer_id: string | null
+          delivery_status: string
           direction: string
           id: string
           message_type: string
@@ -376,6 +440,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           customer_id?: string | null
+          delivery_status?: string
           direction: string
           id?: string
           message_type?: string
@@ -386,6 +451,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           customer_id?: string | null
+          delivery_status?: string
           direction?: string
           id?: string
           message_type?: string
@@ -663,6 +729,7 @@ export type Database = {
           country: string
           country_code: string
           created_at: string
+          default_currency: string
           email: string | null
           id: string
           industry: string | null
@@ -680,6 +747,7 @@ export type Database = {
           country: string
           country_code: string
           created_at?: string
+          default_currency?: string
           email?: string | null
           id?: string
           industry?: string | null
@@ -697,6 +765,7 @@ export type Database = {
           country?: string
           country_code?: string
           created_at?: string
+          default_currency?: string
           email?: string | null
           id?: string
           industry?: string | null
