@@ -46,16 +46,10 @@ type Customer = {
 function CustomersPage() {
   const currency = useTenantCurrency();
   const qc = useQueryClient();
-  const fetchList = useServerFn(listCustomers);
-
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"recent" | "bookings" | "spend">("recent");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editorCustomer, setEditorCustomer] = useState<Partial<Customer> | null>(null);
-  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate">(null);
+  const fetchOne = useServerFn(getCustomer);
+  const saveCustomer = useServerFn(upsertCustomer);
+  const setStatus = useServerFn(setCustomerStatus);
+  const saveNotes = useServerFn(updateCustomerNotes);
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers"],
@@ -81,10 +75,10 @@ function CustomersPage() {
   }, [data, search, statusFilter, sortBy]);
 
   const bulkStatus = useMutation({
-    mutationFn: useServerFn(setCustomerStatus),
+    mutationFn: (vars: { ids: string[]; status: "active" | "inactive" | "blocked" }) => setStatus({ data: vars }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(`${vars.data.ids.length} customer(s) ${vars.data.status === "blocked" ? "blocked" : "updated"}`);
+      toast.success(`${vars.ids.length} customer(s) ${vars.status === "blocked" ? "blocked" : "updated"}`);
       setSelected(new Set());
       setBulkConfirm(null);
     },

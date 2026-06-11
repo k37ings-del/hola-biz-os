@@ -76,9 +76,8 @@ export const getCustomer = createServerFn({ method: "GET" })
         .limit(20),
       context.supabase
         .from("messages")
-        .select("id, body, direction, created_at, delivery_status")
+        .select("id, content, direction, created_at, delivery_status")
         .eq("customer_id", data.id)
-        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(5),
     ]);
