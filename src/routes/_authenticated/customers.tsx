@@ -46,10 +46,17 @@ type Customer = {
 function CustomersPage() {
   const currency = useTenantCurrency();
   const qc = useQueryClient();
-  const fetchOne = useServerFn(getCustomer);
-  const saveCustomer = useServerFn(upsertCustomer);
+  const fetchList = useServerFn(listCustomers);
   const setStatus = useServerFn(setCustomerStatus);
-  const saveNotes = useServerFn(updateCustomerNotes);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"recent" | "bookings" | "spend">("recent");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorCustomer, setEditorCustomer] = useState<Partial<Customer> | null>(null);
+  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate">(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers"],
@@ -269,7 +276,7 @@ function CustomersPage() {
         description="Blocked customers will not be able to book or message your business via WhatsApp until you unblock them."
         confirmLabel="Block"
         destructive
-        onConfirm={() => bulkStatus.mutate({ data: { ids: Array.from(selected), status: "blocked" } })}
+        onConfirm={() => bulkStatus.mutate({ ids: Array.from(selected), status: "blocked" })}
       />
     </div>
   );
