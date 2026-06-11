@@ -27,6 +27,7 @@ export type Tenant = {
   subscription_status: string;
   business_hours: Record<string, { active: boolean; open: string; close: string }>;
   is_demo: boolean;
+  default_currency: string;
 };
 
 export function useSession(): { session: Session | null; loading: boolean } {
