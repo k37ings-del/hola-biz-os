@@ -196,8 +196,7 @@ function ServicesPage() {
         description="This cannot be undone. Existing bookings will keep their reference."
         confirmLabel="Delete"
         destructive
-        loading={remove.isPending}
-        onConfirm={() => confirmDelete && remove.mutate(confirmDelete)}
+        onConfirm={() => { if (confirmDelete) remove.mutate(confirmDelete); }}
       />
     </div>
   );
