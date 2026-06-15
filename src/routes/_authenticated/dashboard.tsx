@@ -111,7 +111,7 @@ function DashboardPage() {
         <KpiCard label="Confirmed" value={kpis.data?.confirmedBookings ?? "—"} icon={CheckCircle2} />
         <KpiCard
           label="Revenue"
-          value={kpis.data ? Object.entries(kpis.data.revenue).map(([cur, amt]) => formatCurrency(amt as number, cur)).join(" + ") || formatCurrency(0, me?.tenant.country_code === "NG" ? "NGN" : "USD") : "—"}
+          value={kpis.data ? Object.entries(kpis.data.revenue).map(([cur, amt]) => formatCurrency(amt as number, cur)).join(" + ") || formatCurrency(0, me?.tenant.default_currency ?? "USD") : "—"}
           icon={DollarSign}
         />
         <KpiCard label="Unpaid invoices" value={kpis.data?.unpaidInvoices ?? "—"} icon={FileText} />
