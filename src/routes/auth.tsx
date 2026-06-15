@@ -281,7 +281,7 @@ function Step1({ defaults, onNext }: { defaults?: z.infer<typeof step1Schema>; o
     <form onSubmit={form.handleSubmit(onNext)} className="space-y-4">
       <div className="space-y-1.5">
         <Label>Business name</Label>
-        <Input {...form.register("business_name")} placeholder="e.g. Glam Studio Lagos" />
+        <Input {...form.register("business_name")} placeholder="Your business name" />
         {form.formState.errors.business_name && <p className="text-xs text-danger">{form.formState.errors.business_name.message}</p>}
       </div>
       <div className="space-y-1.5">
