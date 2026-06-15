@@ -35,7 +35,7 @@ const NAV = [
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/customers", label: "Customers", icon: Users },
   { to: "/bookings", label: "Bookings", icon: Calendar },
-  { to: "/services", label: "Services", icon: Scissors },
+  { to: "/services", label: "Services", icon: Briefcase },
   { to: "/staff", label: "Staff", icon: UserCog },
   { to: "/invoices", label: "Invoices", icon: FileText },
   { to: "/payments", label: "Payments", icon: CreditCard },
