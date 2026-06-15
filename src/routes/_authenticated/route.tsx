@@ -96,25 +96,16 @@ function AuthenticatedLayout() {
                     </SidebarMenuItem>
                   ))}
                   {canSeeAdmin && (
-                    <>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith("/demo")}>
-                          <Link to="/demo">
-                            <Eye className="h-4 w-4" />
-                            <span>Demo</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
-                          <Link to="/admin">
-                            <Shield className="h-4 w-4" />
-                            <span>Admin</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
+                        <Link to="/admin">
+                          <Shield className="h-4 w-4" />
+                          <span>Admin</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   )}
+
 
                 </SidebarMenu>
               </SidebarGroupContent>
