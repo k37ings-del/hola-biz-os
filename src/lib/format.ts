@@ -24,10 +24,10 @@ export function formatCurrency(amountCents: number | null | undefined, currency:
   })}`;
 }
 
-/** Reads the signed-in tenant's default_currency, falls back to NGN. */
+/** Reads the signed-in tenant's default_currency, falls back to USD. */
 export function useTenantCurrency(): string {
   const { data } = useCurrentUser();
-  return data?.tenant.default_currency ?? "NGN";
+  return data?.tenant.default_currency ?? "USD";
 }
 
 const ALPHANUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

@@ -210,6 +210,7 @@ function SignUpWizard() {
           wa_phone_number: d.step3.whatsapp_number || null,
           wa_number_id: d.step3.wa_number_id || null,
           business_hours: d.hours,
+          default_currency: country.currency,
         })
         .select()
         .single();
@@ -281,7 +282,7 @@ function Step1({ defaults, onNext }: { defaults?: z.infer<typeof step1Schema>; o
     <form onSubmit={form.handleSubmit(onNext)} className="space-y-4">
       <div className="space-y-1.5">
         <Label>Business name</Label>
-        <Input {...form.register("business_name")} placeholder="e.g. Glam Studio Lagos" />
+        <Input {...form.register("business_name")} placeholder="Your business name" />
         {form.formState.errors.business_name && <p className="text-xs text-danger">{form.formState.errors.business_name.message}</p>}
       </div>
       <div className="space-y-1.5">

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Scissors, Plus, Loader2, Save, Trash2 } from "lucide-react";
+import { Briefcase, Plus, Loader2, Save, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -90,13 +90,13 @@ function ServicesPage() {
       />
 
       <StatCardGrid>
-        <StatCard label="Total services" value={services.length} icon={Scissors} />
-        <StatCard label="Active" value={activeCount} icon={Scissors} />
-        <StatCard label="Inactive" value={services.length - activeCount} icon={Scissors} />
+        <StatCard label="Total services" value={services.length} icon={Briefcase} />
+        <StatCard label="Active" value={activeCount} icon={Briefcase} />
+        <StatCard label="Inactive" value={services.length - activeCount} icon={Briefcase} />
         <StatCard
           label="Avg price"
           value={services.length ? formatCurrency(Math.round(services.reduce((s: number, x: any) => s + x.price_cents, 0) / services.length), services[0]?.currency ?? tenantCurrency) : "—"}
-          icon={Scissors}
+          icon={Briefcase}
         />
       </StatCardGrid>
 
@@ -105,7 +105,7 @@ function ServicesPage() {
           <SkeletonTable rows={5} />
         ) : services.length === 0 ? (
           <EmptyState
-            icon={Scissors}
+            icon={Briefcase}
             title="No services yet"
             description="Add your first service so customers can book through WhatsApp."
             action={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New service</Button>}

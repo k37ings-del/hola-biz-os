@@ -41,8 +41,10 @@ export function useSession(): { session: Session | null; loading: boolean } {
         setLoading(false);
       }
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Only react to identity transitions — ignore TOKEN_REFRESHED / INITIAL_SESSION noise
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      setSession((prev) => (prev?.user.id === s?.user.id ? prev : s));
     });
     return () => {
       mounted = false;
