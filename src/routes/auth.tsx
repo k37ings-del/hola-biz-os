@@ -210,6 +210,7 @@ function SignUpWizard() {
           wa_phone_number: d.step3.whatsapp_number || null,
           wa_number_id: d.step3.wa_number_id || null,
           business_hours: d.hours,
+          default_currency: country.currency,
         })
         .select()
         .single();
