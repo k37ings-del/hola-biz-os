@@ -678,7 +678,7 @@ function StaffPage() {
         description="This will permanently delete the staff record and unassign their services."
         confirmLabel="Remove"
         destructive
-        onConfirm={() => confirmDelete && deleteMut.mutate(confirmDelete)}
+        onConfirm={() => { if (confirmDelete) deleteMut.mutate(confirmDelete); }}
       />
     </div>
   );
