@@ -658,32 +658,93 @@ export type Database = {
       }
       staff: {
         Row: {
+          active: boolean
           availability: Json
+          bio: string | null
           created_at: string
+          email: string | null
           id: string
           name: string
+          photo_url: string | null
+          role: string
           tenant_id: string
+          updated_at: string
           wa_number: string | null
         }
         Insert: {
+          active?: boolean
           availability?: Json
+          bio?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           name: string
+          photo_url?: string | null
+          role?: string
           tenant_id: string
+          updated_at?: string
           wa_number?: string | null
         }
         Update: {
+          active?: boolean
           availability?: Json
+          bio?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
+          photo_url?: string | null
+          role?: string
           tenant_id?: string
+          updated_at?: string
           wa_number?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "staff_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_services: {
+        Row: {
+          created_at: string
+          service_id: string
+          staff_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          service_id: string
+          staff_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          service_id?: string
+          staff_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_services_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_services_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
