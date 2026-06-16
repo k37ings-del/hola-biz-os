@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Run your African business on WhatsApp — bookings, payments, sales, and support in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Holaweb Business OS" },
+      { name: "twitter:description", content: "Run your African business on WhatsApp — bookings, payments, sales, and support in one place." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
