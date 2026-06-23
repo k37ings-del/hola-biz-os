@@ -37,6 +37,9 @@ export const getAvailability = createServerFn({ method: "GET" })
       _staff_id: (data.staff_id ?? null) as any,
       _day: data.day,
     });
+    if (error) throw error;
+    return result as any;
+  });
 
 export const createPublicBooking = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -57,11 +60,11 @@ export const createPublicBooking = createServerFn({ method: "POST" })
     const { data: result, error } = await sb.rpc("public_create_booking", {
       _tenant_id: data.tenant_id,
       _service_id: data.service_id,
-      _staff_id: data.staff_id ?? null,
+      _staff_id: (data.staff_id ?? null) as any,
       _starts_at: data.starts_at,
       _customer_name: data.customer_name,
-      _customer_email: data.customer_email || null,
-      _customer_phone: data.customer_phone || null,
+      _customer_email: (data.customer_email || null) as any,
+      _customer_phone: (data.customer_phone || null) as any,
       _intake: data.intake,
       _timezone: data.timezone,
     });
