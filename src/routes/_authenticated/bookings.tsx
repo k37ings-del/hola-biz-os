@@ -309,3 +309,20 @@ function BookingsPage() {
     </div>
   );
 }
+
+function PublicBookingLink() {
+  const { data } = useCurrentUser();
+  const slug = (data?.tenant as any)?.slug;
+  if (!slug) return null;
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/book/${slug}`;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => { navigator.clipboard.writeText(url); toast.success("Booking link copied"); }}
+      title={url}
+    >
+      <LinkIcon className="h-4 w-4 mr-1" /> Copy booking link
+    </Button>
+  );
+}
