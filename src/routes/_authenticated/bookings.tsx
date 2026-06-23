@@ -145,7 +145,12 @@ function BookingsPage() {
       <PageHeader
         title="Bookings"
         description="Manage appointments, payment status, and no-shows."
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New booking</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <PublicBookingLink />
+            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New booking</Button>
+          </div>
+        }
       />
 
       <StatCardGrid>
