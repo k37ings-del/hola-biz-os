@@ -52,6 +52,64 @@ export type Database = {
           },
         ]
       }
+      automation_runs: {
+        Row: {
+          automation_id: string
+          booking_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          automation_id: string
+          booking_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          automation_id?: string
+          booking_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_runs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automations: {
         Row: {
           action_type: string | null
@@ -99,17 +157,24 @@ export type Database = {
           cancellation_reason: string | null
           created_at: string
           currency: string
+          customer_email: string | null
           customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
           ends_at: string
           id: string
+          intake_responses: Json | null
+          meeting_url: string | null
           no_show_reason: string | null
           notes: string | null
           ref_code: string
           service_id: string | null
+          source: string | null
           staff_id: string | null
           starts_at: string
           status: string
           tenant_id: string
+          timezone: string | null
           updated_at: string
         }
         Insert: {
@@ -117,17 +182,24 @@ export type Database = {
           cancellation_reason?: string | null
           created_at?: string
           currency: string
+          customer_email?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           ends_at: string
           id?: string
+          intake_responses?: Json | null
+          meeting_url?: string | null
           no_show_reason?: string | null
           notes?: string | null
           ref_code: string
           service_id?: string | null
+          source?: string | null
           staff_id?: string | null
           starts_at: string
           status?: string
           tenant_id: string
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
@@ -135,17 +207,24 @@ export type Database = {
           cancellation_reason?: string | null
           created_at?: string
           currency?: string
+          customer_email?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           ends_at?: string
           id?: string
+          intake_responses?: Json | null
+          meeting_url?: string | null
           no_show_reason?: string | null
           notes?: string | null
           ref_code?: string
           service_id?: string | null
+          source?: string | null
           staff_id?: string | null
           starts_at?: string
           status?: string
           tenant_id?: string
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -172,6 +251,69 @@ export type Database = {
           },
           {
             foreignKeyName: "bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_connections: {
+        Row: {
+          access_token: string | null
+          account_email: string | null
+          calendar_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string
+          refresh_token: string | null
+          scope: string | null
+          staff_id: string
+          sync_enabled: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_email?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          scope?: string | null
+          staff_id: string
+          sync_enabled?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          account_email?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          scope?: string | null
+          staff_id?: string
+          sync_enabled?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_connections_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_connections_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -661,6 +803,7 @@ export type Database = {
           active: boolean
           availability: Json
           bio: string | null
+          buffer_minutes: number | null
           created_at: string
           email: string | null
           id: string
@@ -675,6 +818,7 @@ export type Database = {
           active?: boolean
           availability?: Json
           bio?: string | null
+          buffer_minutes?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -689,6 +833,7 @@ export type Database = {
           active?: boolean
           availability?: Json
           bio?: string | null
+          buffer_minutes?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -786,6 +931,8 @@ export type Database = {
       }
       tenants: {
         Row: {
+          brand_color: string | null
+          buffer_minutes: number | null
           business_hours: Json
           country: string
           country_code: string
@@ -794,16 +941,22 @@ export type Database = {
           email: string | null
           id: string
           industry: string | null
+          intake_form: Json | null
           is_admin_workspace: boolean
           is_demo: boolean
+          logo_url: string | null
           name: string
           plan_tier: string
+          slug: string
           subscription_status: string
+          timezone: string | null
           wa_number_id: string | null
           wa_phone_number: string | null
           whatsapp_number: string | null
         }
         Insert: {
+          brand_color?: string | null
+          buffer_minutes?: number | null
           business_hours?: Json
           country: string
           country_code: string
@@ -812,16 +965,22 @@ export type Database = {
           email?: string | null
           id?: string
           industry?: string | null
+          intake_form?: Json | null
           is_admin_workspace?: boolean
           is_demo?: boolean
+          logo_url?: string | null
           name: string
           plan_tier?: string
+          slug: string
           subscription_status?: string
+          timezone?: string | null
           wa_number_id?: string | null
           wa_phone_number?: string | null
           whatsapp_number?: string | null
         }
         Update: {
+          brand_color?: string | null
+          buffer_minutes?: number | null
           business_hours?: Json
           country?: string
           country_code?: string
@@ -830,11 +989,15 @@ export type Database = {
           email?: string | null
           id?: string
           industry?: string | null
+          intake_form?: Json | null
           is_admin_workspace?: boolean
           is_demo?: boolean
+          logo_url?: string | null
           name?: string
           plan_tier?: string
+          slug?: string
           subscription_status?: string
+          timezone?: string | null
           wa_number_id?: string | null
           wa_phone_number?: string | null
           whatsapp_number?: string | null
@@ -893,6 +1056,30 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       has_admin_access: { Args: never; Returns: boolean }
+      public_create_booking: {
+        Args: {
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+          _intake: Json
+          _service_id: string
+          _staff_id: string
+          _starts_at: string
+          _tenant_id: string
+          _timezone: string
+        }
+        Returns: Json
+      }
+      public_get_availability: {
+        Args: {
+          _day: string
+          _service_id: string
+          _staff_id: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
+      public_get_booking_page: { Args: { _slug: string }; Returns: Json }
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "agent"
