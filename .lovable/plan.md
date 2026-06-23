@@ -1,118 +1,63 @@
-## Scope decision
+# HolaWeb Appointments & Commerce OS — Build Plan
 
-You picked: customer-facing first, real CRUD against the signed-in user's tenant, full admin spec. That is realistically **5+ build passes**. This plan covers **Pass 1** in detail and sketches passes 2–5 so we agree on the shape before I start.
+This is a multi-week scope. I'll break it into phases so we can ship value each turn instead of one mega-change that breaks half the app. Confirm the phase order (or re-order) and I'll start with Phase 1 next turn.
 
-I will NOT touch the existing demo tenant (Glam Studio Lagos) or HQ tenant data. New CRUD writes against `current_tenant_id()`.
+## Positioning & instant fixes (this turn, if you approve)
+1. Re-brand the app shell, meta titles, and marketing copy from "Business OS / booking system" to **HolaWeb Appointments & Commerce OS**.
+2. Fix the sign-up country default: stop hard-defaulting to Nigeria. On registration, detect country from the browser (`Intl.DateTimeFormat().resolvedOptions().timeZone` + `navigator.language`) as a suggestion, but the user picks the country in the form and the tenant's `country` + `default_currency` are set from that selection only.
+3. Remove any remaining salon-specific copy/icons (already partially done) and audit the Holaweb tenant so it shows ZAR + South Africa, not Lagos.
 
----
+## Phase 1 — Customer-facing booking flow (public)
+- Public route `/{tenant-slug}/book` (and later custom domain), mobile-first, white-label (logo, primary color, business name from `tenants`/`tenant_settings`).
+- Wizard: Service → Staff (optional) → Date → Time slot → Customer info → Intake form → Summary → Pay → Confirmation.
+- Real-time availability using staff working hours + existing bookings + service `duration_minutes` + configurable buffer.
+- Timezone auto-detect, multi-location aware (schema additions: `locations` table, `staff.location_id`).
+- Backed by public-read server functions (publishable key + narrow anon SELECT on services/staff/availability views).
 
-## Pass 1 — Foundations + Inbox + Customers + Bookings
+## Phase 2 — Booking lifecycle & ops
+- Reschedule + cancel links (signed token, no login required for the customer).
+- Waiting list table + auto-notify when a slot frees.
+- Recurring availability & buffer times in Staff → Schedule.
+- Automated reminders/follow-ups (scheduled via pg_cron → `/api/public/cron/*` route).
 
-### 1.1 Fix the hydration error (blocking)
+## Phase 3 — Finance module
+- New `/finance` route consolidating Invoices, Payments, Refunds, Payouts (replaces the current placeholder pages).
+- Schema: extend `invoices`, `payments`; add `refunds`, `payouts`.
+- Per-tenant payment provider config in `tenant_settings`.
 
-`src/routes/auth.tsx` likely renders a `<Suspense>` boundary or branches on `typeof window`. The diff in the runtime error shows server emitted `<Suspense>`, client emitted `<div>`. Fix: mark `/auth` as `ssr: false` (it's a client-only auth flow anyway) and remove any `typeof window` branches in its render path.
+## Phase 4 — Payment provider integrations
+Ship one at a time, each behind a provider adapter interface:
+PayFast, Ozow, Yoco, Peach, Paystack, Flutterwave, Stripe. Webhooks under `/api/public/webhooks/{provider}` with signature verification.
 
-### 1.2 DB / migration work
+## Phase 5 — Calendar & meeting integrations
+Google Calendar, Outlook, Zoom, Google Meet — per-staff OAuth, two-way sync, auto-create meeting link on confirmation.
 
-Add to existing tables (no new tables needed for Pass 1):
+## Phase 6 — WhatsApp Cloud API
+Outbound confirmations/reminders + inbound webhook into the existing Inbox module.
 
-- `tenants.default_currency text not null default 'NGN'` — editable per tenant, drives all money formatting. Backfill existing rows from country.
-- `bookings.cancellation_reason text`, `bookings.no_show_reason text`.
-- `customers.status text not null default 'active'` check in ('active','inactive','blocked'); `customers.notes text`.
-- `conversations.assigned_staff_id uuid references staff(id)`; ensure `status` check in ('open','waiting','resolved').
-- Indexes: `bookings (tenant_id, starts_at desc)`, `conversations (tenant_id, updated_at desc)`, `customers (tenant_id, last_seen_at desc)`.
+## Phase 7 — Automation module
+`/automations` UI to configure triggers (booking confirmed, 24h before, payment overdue, post-visit review, follow-up campaign) → channels (WhatsApp, email, SMS). Stored as rules executed by the cron worker.
 
-RLS: every table already scoped by `current_tenant_id()`. Verify policies cover INSERT/UPDATE/DELETE for `owner`/`admin`/`manager`. Add missing ones. GRANTs to `authenticated` + `service_role`.
+## Phase 8 — Analytics module
+`/analytics` with revenue, bookings, customer growth, service & staff performance, conversion funnel. Server-side aggregates, charts via Recharts.
 
-### 1.3 Shared UI primitives (built once, reused everywhere)
+## Phase 9 — AI features (via Lovable AI Gateway, `google/gemini-3-flash-preview`)
+- AI Booking Assistant (chat that books on the public site).
+- AI Receptionist (auto-replies in Inbox).
+- AI Customer Summary (per-customer profile card).
+- AI Suggested Follow-Ups (per booking).
 
-Create under `src/components/shell/`:
+## Phase 10 — Polish pass
+Modernize cards/tables/forms, tighten visual hierarchy, accessibility, dark-mode audit, empty/loading/error states everywhere.
 
-- `PageHeader` — H1 + subtitle + actions slot. Sets `<title>` via TanStack `head()`.
-- `StatCardGrid` + `StatCard` — 3–4 KPI cards.
-- `DataToolbar` — search input + filter chips + sort dropdown.
-- `SlideOver` — right-drawer 480px, sticky footer, dirty-state warn-on-close, ESC + backdrop close.
-- `ConfirmDialog` — destructive confirmation w/ reason field option.
-- `EmptyState` — icon + title + description + CTA.
-- `StatusBadge` — single component, variant per status (confirmed/pending/cancelled/completed/no-show/active/inactive/blocked/open/waiting/resolved).
-- `SkeletonTable` — shimmer rows with 300ms artificial delay helper.
-- `MoneyText` — reads tenant `default_currency`, formats `ZAR 299.00` style. Replaces hardcoded NGN/₦ everywhere.
-- `PhoneText` — international format.
-- `RelativeTime` / `AbsoluteDateTime`.
-- Mobile: sidebar collapses to bottom nav via existing `useIsMobile`.
+## Technical notes (for me, not blocking)
+- All new tables: `GRANT` + RLS scoped to `current_tenant_id()`; public booking surface uses narrow `TO anon` SELECT policies on a curated view, never the raw tables.
+- All app-internal calls = `createServerFn`. Webhooks/cron = `/api/public/*` server routes with signature verification.
+- Custom domain support reuses Lovable's existing domain plumbing per tenant.
 
-Toasts already via `sonner`. Pagination util (10/page default, "Load more" pattern).
+## Question for you
+Do you want me to:
+**(A)** Do the positioning + country/currency fix **this turn**, then start Phase 1 next turn, **or**
+**(B)** Jump straight into Phase 1 (customer-facing booking flow) and bundle the rebrand into it?
 
-### 1.4 Tenant-currency wiring
-
-- `useTenantCurrency()` hook reads from `useCurrentUser().tenant.default_currency`.
-- Settings → Business profile gets a Currency dropdown (NGN, ZAR, KES, GHS, UGX, TZS, RWF, USD, EUR, GBP).
-- Service create/edit currency field defaults to tenant currency but is overridable per-service (already in schema).
-- All `formatCurrency` calls switch to use tenant currency by default.
-
-### 1.5 Inbox module (`/inbox`)
-
-- Server fns: `listConversations`, `getConversation(id)`, `sendMessage`, `updateConversationStatus`, `assignConversation`, `listTemplates`.
-- Two-pane layout (left 320px list, right thread). Mobile: list-or-thread, not both.
-- Status tabs, unread toggle, search by name/phone.
-- WhatsApp-style chat bubbles, delivery-status icons, customer header with booking count + "View customer" link.
-- Composer: textarea + Send + Template picker modal + Attach (disabled tooltip).
-- Template picker: read approved rows from a new lightweight `message_templates` view (filter `notifications`/seed table) — for Pass 1, seed 8 generic templates per tenant on first load via server fn.
-- Empty states for both panes.
-
-### 1.6 Customers module (`/customers`)
-
-- Server fns: `listCustomers`, `getCustomer(id)`, `updateCustomer`, `blockCustomer`, `bulkAction`, `getCustomerStats`.
-- 4 stat cards. Sortable table with checkbox multi-select. Search + status + date-range filters.
-- Slide-over with Overview / Conversation / Notes tabs. Notes auto-save (debounced server fn).
-- Bulk action bar: Export (CSV), Block, Send template.
-- Empty state.
-
-### 1.7 Bookings module (`/bookings`)
-
-- Server fns: `listBookings`, `getBooking`, `createBooking`, `updateBookingStatus`, `cancelBooking`, `sendPaymentReminder`, `getBookingStats`, `availableSlots(staffId, serviceId, date)`.
-- 4 stat cards. Table view + Calendar view toggle (week default, month/day toggles). Use `react-day-picker` (already shadcn) for date filters; build a minimal week-grid calendar in-house (no new heavy lib).
-- Filters: status, date range, staff, service, search.
-- Slide-over detail with Customer / Appointment / Payment / Timeline sections + action row with cancel/no-show reason dialogs.
-- New booking slide-over with cascading selectors. Payment: send-link / mark-paid / pay-later.
-- Empty state.
-
----
-
-## Pass 2 — Services + Staff
-
-Drag-reorder services (dnd-kit), buffer/deposit/booking-window rules, weekly availability grid, color picker, staff↔services assignment. New table: `staff_services` join, `staff_availability` weekly rows + `staff_overrides` date rows.
-
-## Pass 3 — Settings (6 tabs)
-
-Business profile (with logo upload to Lovable Cloud storage — adds 1 bucket), WhatsApp setup (placeholder cards — actual Meta connection deferred), Booking rules → write to `tenant_settings`, Notifications → new `notification_preferences` table, Payments → reuses `gateway_config`, Subscription/billing → reads `tenants.plan_tier`, shows static plan cards.
-
-## Pass 4 — Admin expansion
-
-Keep current `/admin`. Add sub-nav: Overview (charts via recharts — already installed), Tenants (expand current table + create/impersonate), WhatsApp numbers, Support queue (new `support_tickets` table), Platform settings (new `platform_settings` singleton table with feature flags + announcement).
-
-**Impersonation** is non-trivial — it needs an "acting_as_tenant_id" override on every server fn that currently uses `current_tenant_id()`. I'll implement it via a signed cookie set by a super-admin-only `startImpersonation` server fn, read by a new `effective_tenant_id()` SQL function used by RLS. Flagging this as the riskiest part of the whole spec.
-
-## Pass 5 — Polish
-
-Mobile bottom nav, skeleton states everywhere, role-based redirect guard with toast, "Admin mode" banner styling, accessibility pass, full Cypress-style manual test of every CRUD path.
-
----
-
-## Out of scope / explicit deferrals
-
-- Real WhatsApp Meta connection (UI only; no API calls).
-- Real payment gateway connections (UI + `gateway_config` row only; no Paystack/MPesa SDK).
-- CSV export beyond a simple client-side download.
-- Email notifications (toggles persist; no SMTP wiring).
-- Logo upload requires creating a Cloud storage bucket (Pass 3).
-
----
-
-## What I need from you before I start Pass 1
-
-1. **Confirm Pass 1 scope** as written, OR trim it (e.g. "skip Calendar view in Pass 1, table only").
-2. **Currency default for NEW tenants** — keep NGN, or switch to "ask during signup"? (Existing tenants get migrated from country code.)
-3. **Calendar view in Pass 1 or Pass 2?** Building a usable week-grid with drag-resize is ~1 full pass on its own. Recommend Pass 1 = table view only, Pass 2 ships the calendar with Services/Staff.
-
-Once you answer those three, I start Pass 1 (hydration fix + migration + shared primitives + Inbox + Customers + Bookings table view). Expect that to be one large build response; the other passes follow one at a time.
+Also: any phase you want re-ordered or dropped? (E.g. if WhatsApp or Stripe is urgent, I'll move it earlier.)
