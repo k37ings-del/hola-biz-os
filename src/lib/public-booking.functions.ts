@@ -34,12 +34,9 @@ export const getAvailability = createServerFn({ method: "GET" })
     const { data: result, error } = await sb.rpc("public_get_availability", {
       _tenant_id: data.tenant_id,
       _service_id: data.service_id,
-      _staff_id: data.staff_id ?? null,
+      _staff_id: (data.staff_id ?? null) as any,
       _day: data.day,
     });
-    if (error) throw error;
-    return result as any;
-  });
 
 export const createPublicBooking = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
