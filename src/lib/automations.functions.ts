@@ -7,8 +7,15 @@ async function tenantOf(supabase: any, userId: string) {
   return data?.tenant_id as string | null;
 }
 
-const TRIGGERS = ["booking_confirmed", "before_appointment", "after_appointment", "payment_overdue", "post_visit_review", "follow_up"] as const;
-const CHANNELS = ["whatsapp", "email", "sms"] as const;
+export const TRIGGERS = ["booking_confirmed", "before_appointment", "after_appointment", "payment_overdue", "post_visit_review", "follow_up"] as const;
+export const CHANNELS = ["whatsapp", "email", "sms"] as const;
+
+export type AutomationConfig = {
+  channel: typeof CHANNELS[number];
+  offset_minutes: number;
+  subject?: string | null;
+  template: string;
+};
 
 export const listAutomations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -39,14 +46,26 @@ export const upsertAutomation = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
-    const payload = { ...data, tenant_id: tenantId, subject: data.subject ?? null };
+    const config: AutomationConfig = {
+      channel: data.channel,
+      offset_minutes: data.offset_minutes,
+      subject: data.subject ?? null,
+      template: data.template,
+    };
+    const payload = {
+      tenant_id: tenantId,
+      name: data.name,
+      trigger_type: data.trigger,
+      action_type: data.channel,
+      active: data.active,
+      config: config as any,
+    };
     if (data.id) {
       const { error } = await context.supabase.from("automations").update(payload).eq("id", data.id).eq("tenant_id", tenantId);
       if (error) throw error;
       return { ok: true, id: data.id };
     }
-    const { id: _, ...insertPayload } = payload as any;
-    const { data: inserted, error } = await context.supabase.from("automations").insert(insertPayload).select("id").single();
+    const { data: inserted, error } = await context.supabase.from("automations").insert(payload).select("id").single();
     if (error) throw error;
     return { ok: true, id: inserted.id };
   });
