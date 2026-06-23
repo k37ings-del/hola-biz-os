@@ -198,10 +198,14 @@ function SignUpWizard() {
 
 
 
+      const baseSlug = d.step1.business_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40) || "biz";
+      const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 8)}`;
+
       const { data: tenant, error: tErr } = await supabase
         .from("tenants")
         .insert({
           name: d.step1.business_name,
+          slug,
           industry: d.step1.industry,
           country: country.name,
           country_code: country.code,

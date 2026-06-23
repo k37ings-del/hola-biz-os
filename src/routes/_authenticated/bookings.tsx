@@ -3,7 +3,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Calendar, Plus, Loader2, Save } from "lucide-react";
+import { Calendar, Plus, Loader2, Save, Link as LinkIcon } from "lucide-react";
+import { useCurrentUser } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -145,7 +146,12 @@ function BookingsPage() {
       <PageHeader
         title="Bookings"
         description="Manage appointments, payment status, and no-shows."
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New booking</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <PublicBookingLink />
+            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New booking</Button>
+          </div>
+        }
       />
 
       <StatCardGrid>
@@ -302,5 +308,22 @@ function BookingsPage() {
         )}
       </SlideOver>
     </div>
+  );
+}
+
+function PublicBookingLink() {
+  const { data } = useCurrentUser();
+  const slug = (data?.tenant as any)?.slug;
+  if (!slug) return null;
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/book/${slug}`;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => { navigator.clipboard.writeText(url); toast.success("Booking link copied"); }}
+      title={url}
+    >
+      <LinkIcon className="h-4 w-4 mr-1" /> Copy booking link
+    </Button>
   );
 }
