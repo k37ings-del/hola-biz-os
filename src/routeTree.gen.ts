@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WaitlistTokenRouteImport } from './routes/waitlist.$token'
 import { Route as RescheduleTokenRouteImport } from './routes/reschedule.$token'
 import { Route as CancelTokenRouteImport } from './routes/cancel.$token'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
@@ -42,6 +43,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaitlistTokenRoute = WaitlistTokenRouteImport.update({
+  id: '/waitlist/$token',
+  path: '/waitlist/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RescheduleTokenRoute = RescheduleTokenRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRoutesByTo {
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRoutesById {
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRouteTypes {
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   id:
     | '__root__'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesById: FileRoutesById
 }
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   BookSlugRoute: typeof BookSlugRoute
   CancelTokenRoute: typeof CancelTokenRoute
   RescheduleTokenRoute: typeof RescheduleTokenRoute
+  WaitlistTokenRoute: typeof WaitlistTokenRoute
   ApiPublicHooksRunAutomationsRoute: typeof ApiPublicHooksRunAutomationsRoute
 }
 
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/waitlist/$token': {
+      id: '/waitlist/$token'
+      path: '/waitlist/$token'
+      fullPath: '/waitlist/$token'
+      preLoaderRoute: typeof WaitlistTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reschedule/$token': {
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookSlugRoute: BookSlugRoute,
   CancelTokenRoute: CancelTokenRoute,
   RescheduleTokenRoute: RescheduleTokenRoute,
+  WaitlistTokenRoute: WaitlistTokenRoute,
   ApiPublicHooksRunAutomationsRoute: ApiPublicHooksRunAutomationsRoute,
 }
 export const routeTree = rootRouteImport
