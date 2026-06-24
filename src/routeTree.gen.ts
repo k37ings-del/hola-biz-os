@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WaitlistTokenRouteImport } from './routes/waitlist.$token'
+import { Route as WaitlistJoinSlugRouteImport } from './routes/waitlist-join.$slug'
 import { Route as RescheduleTokenRouteImport } from './routes/reschedule.$token'
 import { Route as CancelTokenRouteImport } from './routes/cancel.$token'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
@@ -49,6 +50,11 @@ const IndexRoute = IndexRouteImport.update({
 const WaitlistTokenRoute = WaitlistTokenRouteImport.update({
   id: '/waitlist/$token',
   path: '/waitlist/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaitlistJoinSlugRoute = WaitlistJoinSlugRouteImport.update({
+  id: '/waitlist-join/$slug',
+  path: '/waitlist-join/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RescheduleTokenRoute = RescheduleTokenRouteImport.update({
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesByTo: FileRoutesByTo
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   id:
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesById: FileRoutesById
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   BookSlugRoute: typeof BookSlugRoute
   CancelTokenRoute: typeof CancelTokenRoute
   RescheduleTokenRoute: typeof RescheduleTokenRoute
+  WaitlistJoinSlugRoute: typeof WaitlistJoinSlugRoute
   WaitlistTokenRoute: typeof WaitlistTokenRoute
   ApiPublicHooksRunAutomationsRoute: typeof ApiPublicHooksRunAutomationsRoute
 }
@@ -327,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/waitlist/$token'
       fullPath: '/waitlist/$token'
       preLoaderRoute: typeof WaitlistTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/waitlist-join/$slug': {
+      id: '/waitlist-join/$slug'
+      path: '/waitlist-join/$slug'
+      fullPath: '/waitlist-join/$slug'
+      preLoaderRoute: typeof WaitlistJoinSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reschedule/$token': {
@@ -502,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookSlugRoute: BookSlugRoute,
   CancelTokenRoute: CancelTokenRoute,
   RescheduleTokenRoute: RescheduleTokenRoute,
+  WaitlistJoinSlugRoute: WaitlistJoinSlugRoute,
   WaitlistTokenRoute: WaitlistTokenRoute,
   ApiPublicHooksRunAutomationsRoute: ApiPublicHooksRunAutomationsRoute,
 }
