@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, BarChart3, Megaphone } from "lucide-react";
+import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, BarChart3, Megaphone, Activity } from "lucide-react";
 import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
