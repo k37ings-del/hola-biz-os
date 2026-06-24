@@ -1,0 +1,6 @@
+
+ALTER TABLE public.automation_runs
+  ALTER COLUMN automation_id DROP NOT NULL,
+  ADD COLUMN IF NOT EXISTS trigger_type TEXT,
+  ADD COLUMN IF NOT EXISTS payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS result JSONB;
