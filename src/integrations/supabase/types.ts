@@ -222,6 +222,7 @@ export type Database = {
           meeting_url: string | null
           no_show_reason: string | null
           notes: string | null
+          portal_token: string | null
           ref_code: string
           reschedule_token: string | null
           service_id: string | null
@@ -249,6 +250,7 @@ export type Database = {
           meeting_url?: string | null
           no_show_reason?: string | null
           notes?: string | null
+          portal_token?: string | null
           ref_code: string
           reschedule_token?: string | null
           service_id?: string | null
@@ -276,6 +278,7 @@ export type Database = {
           meeting_url?: string | null
           no_show_reason?: string | null
           notes?: string | null
+          portal_token?: string | null
           ref_code?: string
           reschedule_token?: string | null
           service_id?: string | null
@@ -999,6 +1002,7 @@ export type Database = {
           buffer_minutes: number | null
           created_at: string
           email: string | null
+          ics_token: string | null
           id: string
           name: string
           photo_url: string | null
@@ -1014,6 +1018,7 @@ export type Database = {
           buffer_minutes?: number | null
           created_at?: string
           email?: string | null
+          ics_token?: string | null
           id?: string
           name: string
           photo_url?: string | null
@@ -1029,6 +1034,7 @@ export type Database = {
           buffer_minutes?: number | null
           created_at?: string
           email?: string | null
+          ics_token?: string | null
           id?: string
           name?: string
           photo_url?: string | null
@@ -1196,6 +1202,7 @@ export type Database = {
           is_demo: boolean
           logo_url: string | null
           name: string
+          payment_providers: Json
           plan_tier: string
           slug: string
           subscription_status: string
@@ -1220,6 +1227,7 @@ export type Database = {
           is_demo?: boolean
           logo_url?: string | null
           name: string
+          payment_providers?: Json
           plan_tier?: string
           slug: string
           subscription_status?: string
@@ -1244,6 +1252,7 @@ export type Database = {
           is_demo?: boolean
           logo_url?: string | null
           name?: string
+          payment_providers?: Json
           plan_tier?: string
           slug?: string
           subscription_status?: string
@@ -1422,6 +1431,8 @@ export type Database = {
         Returns: Json
       }
       public_get_booking_page: { Args: { _slug: string }; Returns: Json }
+      public_get_customer_portal: { Args: { _token: string }; Returns: Json }
+      public_get_staff_ics: { Args: { _token: string }; Returns: Json }
       public_get_waitlist_offer: { Args: { _token: string }; Returns: Json }
       public_join_waitlist: {
         Args: {
