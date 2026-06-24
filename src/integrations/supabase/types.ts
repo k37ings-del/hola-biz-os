@@ -52,6 +52,60 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_user_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_runs: {
         Row: {
           automation_id: string
@@ -154,6 +208,7 @@ export type Database = {
       bookings: {
         Row: {
           amount_cents: number
+          cancel_token: string | null
           cancellation_reason: string | null
           created_at: string
           currency: string
@@ -168,6 +223,7 @@ export type Database = {
           no_show_reason: string | null
           notes: string | null
           ref_code: string
+          reschedule_token: string | null
           service_id: string | null
           source: string | null
           staff_id: string | null
@@ -179,6 +235,7 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
+          cancel_token?: string | null
           cancellation_reason?: string | null
           created_at?: string
           currency: string
@@ -193,6 +250,7 @@ export type Database = {
           no_show_reason?: string | null
           notes?: string | null
           ref_code: string
+          reschedule_token?: string | null
           service_id?: string | null
           source?: string | null
           staff_id?: string | null
@@ -204,6 +262,7 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
+          cancel_token?: string | null
           cancellation_reason?: string | null
           created_at?: string
           currency?: string
@@ -218,6 +277,7 @@ export type Database = {
           no_show_reason?: string | null
           notes?: string | null
           ref_code?: string
+          reschedule_token?: string | null
           service_id?: string | null
           source?: string | null
           staff_id?: string | null
@@ -757,6 +817,139 @@ export type Database = {
           },
         ]
       }
+      payouts: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          destination: string | null
+          id: string
+          paid_at: string | null
+          provider: string
+          provider_ref: string | null
+          scheduled_for: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency: string
+          destination?: string | null
+          id?: string
+          paid_at?: string | null
+          provider: string
+          provider_ref?: string | null
+          scheduled_for?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          destination?: string | null
+          id?: string
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          scheduled_for?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refunds: {
+        Row: {
+          amount_cents: number
+          booking_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          payment_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          provider: string | null
+          provider_ref: string | null
+          reason: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          booking_id?: string | null
+          created_at?: string
+          currency: string
+          id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          reason?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          reason?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           active: boolean
@@ -847,6 +1040,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "staff_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_schedules: {
+        Row: {
+          breaks: Json
+          buffer_after_minutes: number
+          buffer_before_minutes: number
+          created_at: string
+          id: string
+          max_daily_appointments: number | null
+          staff_id: string
+          tenant_id: string
+          time_off: Json
+          updated_at: string
+          weekly: Json
+        }
+        Insert: {
+          breaks?: Json
+          buffer_after_minutes?: number
+          buffer_before_minutes?: number
+          created_at?: string
+          id?: string
+          max_daily_appointments?: number | null
+          staff_id: string
+          tenant_id: string
+          time_off?: Json
+          updated_at?: string
+          weekly?: Json
+        }
+        Update: {
+          breaks?: Json
+          buffer_after_minutes?: number
+          buffer_before_minutes?: number
+          created_at?: string
+          id?: string
+          max_daily_appointments?: number | null
+          staff_id?: string
+          tenant_id?: string
+          time_off?: Json
+          updated_at?: string
+          weekly?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_schedules_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_schedules_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1045,6 +1295,82 @@ export type Database = {
           },
         ]
       }
+      waiting_list: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          desired_from: string | null
+          desired_to: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          notified_at: string | null
+          service_id: string | null
+          staff_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          desired_from?: string | null
+          desired_to?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          notified_at?: string | null
+          service_id?: string | null
+          staff_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          desired_from?: string | null
+          desired_to?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          notified_at?: string | null
+          service_id?: string | null
+          staff_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiting_list_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiting_list_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiting_list_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1056,6 +1382,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       has_admin_access: { Args: never; Returns: boolean }
+      public_cancel_booking: {
+        Args: { _reason: string; _token: string }
+        Returns: Json
+      }
       public_create_booking: {
         Args: {
           _customer_email: string
@@ -1079,7 +1409,15 @@ export type Database = {
         }
         Returns: Json
       }
+      public_get_booking_by_token: {
+        Args: { _kind: string; _token: string }
+        Returns: Json
+      }
       public_get_booking_page: { Args: { _slug: string }; Returns: Json }
+      public_reschedule_booking: {
+        Args: { _new_starts_at: string; _token: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "agent"
