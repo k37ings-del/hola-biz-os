@@ -380,8 +380,16 @@ function PublicBookingPage() {
             <p className="text-sm text-muted-foreground mt-2">Your reference is</p>
             <p className="font-mono font-semibold text-lg mt-1">{confirmation.ref_code}</p>
             <p className="text-sm text-muted-foreground mt-6 max-w-sm mx-auto">
-              We've reserved your slot. Check your {email ? "email" : "phone"} for confirmation and payment instructions.
+              Opening your personal booking portal…
             </p>
+            {confirmation.portal_token && (
+              <a
+                href={`/p/${confirmation.portal_token}`}
+                className="inline-block mt-4 text-sm font-medium text-primary hover:underline"
+              >
+                Open my portal now →
+              </a>
+            )}
           </div>
         )}
       </main>
