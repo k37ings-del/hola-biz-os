@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, BarChart3, Megaphone, Activity } from "lucide-react";
+import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, Activity, CalendarClock } from "lucide-react";
 import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -38,6 +38,7 @@ const NAV = [
   { to: "/customers", label: "Customers", icon: Users },
   { to: "/services", label: "Services", icon: Briefcase },
   { to: "/staff", label: "Staff", icon: UserCog },
+  { to: "/schedule", label: "Schedule", icon: CalendarClock },
   { to: "/finance", label: "Finance", icon: Wallet },
   { to: "/automations", label: "Automations", icon: Zap },
   { to: "/settings", label: "Settings", icon: Settings },

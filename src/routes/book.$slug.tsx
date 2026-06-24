@@ -66,7 +66,8 @@ function PublicBookingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [intake, setIntake] = useState<Record<string, string>>({});
-  const [confirmation, setConfirmation] = useState<{ id: string; ref_code: string } | null>(null);
+  const [confirmation, setConfirmation] = useState<{ id: string; ref_code: string; portal_token?: string } | null>(null);
+  const navigate = useNavigate();
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const service = useMemo(() => services.find((s) => s.id === serviceId), [services, serviceId]);
@@ -139,9 +140,15 @@ function PublicBookingPage() {
         },
       });
     },
-    onSuccess: (r) => {
+    onSuccess: (r: any) => {
       setConfirmation(r);
       setStep("done");
+      // Auto-redirect to the customer portal after a short celebration moment
+      if (r?.portal_token) {
+        setTimeout(() => {
+          navigate({ to: "/p/$token", params: { token: r.portal_token } });
+        }, 2200);
+      }
     },
     onError: (e: any) => toast.error(e.message ?? "Booking failed"),
   });
