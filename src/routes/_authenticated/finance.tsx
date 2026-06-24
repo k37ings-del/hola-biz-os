@@ -39,7 +39,7 @@ function FinancePage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Finance" subtitle="Invoices, payments, refunds and payouts in one place" />
+      <PageHeader title="Finance" description="Invoices, payments, refunds and payouts in one place" />
 
       <StatCardGrid>
         <StatCard label="Revenue" value={money(d.stats.revenue, currency)} icon={DollarSign} />

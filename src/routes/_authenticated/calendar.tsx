@@ -52,7 +52,7 @@ function CalendarPage() {
     <div className="space-y-4">
       <PageHeader
         title="Calendar"
-        subtitle="The heart of your operation — every booking, every staff member, in one view"
+        description="The heart of your operation — every booking, every staff member, in one view"
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setAnchor(startOfWeek(new Date()))}>Today</Button>
