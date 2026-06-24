@@ -38,16 +38,17 @@ export const Route = createFileRoute("/api/public/hooks/run-automations")({
         for (const run of due ?? []) {
           try {
             const dispatched = await dispatch(supabaseAdmin, run, resendKey);
+            const anySent = dispatched.some((d) => !d.skipped);
             await supabaseAdmin
               .from("automation_runs")
               .update({
-                status: dispatched.skipped ? "skipped" : "sent",
+                status: anySent ? "sent" : "skipped",
                 sent_at: new Date().toISOString(),
-                result: dispatched as any,
+                result: { channels: dispatched } as any,
               })
               .eq("id", run.id);
-            if (!dispatched.skipped) sent++;
-            results.push({ id: run.id, ...dispatched });
+            if (anySent) sent++;
+            results.push({ id: run.id, channels: dispatched });
           } catch (err: any) {
             failed++;
             await supabaseAdmin
