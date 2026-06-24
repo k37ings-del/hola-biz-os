@@ -15,11 +15,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WaitlistTokenRouteImport } from './routes/waitlist.$token'
 import { Route as WaitlistJoinSlugRouteImport } from './routes/waitlist-join.$slug'
 import { Route as RescheduleTokenRouteImport } from './routes/reschedule.$token'
+import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as CancelTokenRouteImport } from './routes/cancel.$token'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
@@ -31,6 +33,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicIcsTokenRouteImport } from './routes/api/public/ics.$token'
 import { Route as ApiPublicHooksRunAutomationsRouteImport } from './routes/api/public/hooks/run-automations'
 
 const AuthRoute = AuthRouteImport.update({
@@ -62,6 +65,11 @@ const RescheduleTokenRoute = RescheduleTokenRouteImport.update({
   path: '/reschedule/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CancelTokenRoute = CancelTokenRouteImport.update({
   id: '/cancel/$token',
   path: '/cancel/$token',
@@ -85,6 +93,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
@@ -143,6 +156,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicIcsTokenRoute = ApiPublicIcsTokenRouteImport.update({
+  id: '/api/public/ics/$token',
+  path: '/api/public/ics/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksRunAutomationsRoute =
   ApiPublicHooksRunAutomationsRouteImport.update({
     id: '/api/public/hooks/run-automations',
@@ -164,15 +182,18 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/schedule': typeof AuthenticatedScheduleRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
+  '/p/$token': typeof PTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
   '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
+  '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -188,15 +209,18 @@ export interface FileRoutesByTo {
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/schedule': typeof AuthenticatedScheduleRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
+  '/p/$token': typeof PTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
   '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
+  '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -214,15 +238,18 @@ export interface FileRoutesById {
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
+  '/p/$token': typeof PTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
   '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
+  '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,15 +267,18 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/payments'
     | '/platform'
+    | '/schedule'
     | '/services'
     | '/settings'
     | '/staff'
     | '/book/$slug'
     | '/cancel/$token'
+    | '/p/$token'
     | '/reschedule/$token'
     | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
+    | '/api/public/ics/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -264,15 +294,18 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/payments'
     | '/platform'
+    | '/schedule'
     | '/services'
     | '/settings'
     | '/staff'
     | '/book/$slug'
     | '/cancel/$token'
+    | '/p/$token'
     | '/reschedule/$token'
     | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
+    | '/api/public/ics/$token'
   id:
     | '__root__'
     | '/'
@@ -289,15 +322,18 @@ export interface FileRouteTypes {
     | '/_authenticated/invoices'
     | '/_authenticated/payments'
     | '/_authenticated/platform'
+    | '/_authenticated/schedule'
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/staff'
     | '/book/$slug'
     | '/cancel/$token'
+    | '/p/$token'
     | '/reschedule/$token'
     | '/waitlist-join/$slug'
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
+    | '/api/public/ics/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -306,10 +342,12 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BookSlugRoute: typeof BookSlugRoute
   CancelTokenRoute: typeof CancelTokenRoute
+  PTokenRoute: typeof PTokenRoute
   RescheduleTokenRoute: typeof RescheduleTokenRoute
   WaitlistJoinSlugRoute: typeof WaitlistJoinSlugRoute
   WaitlistTokenRoute: typeof WaitlistTokenRoute
   ApiPublicHooksRunAutomationsRoute: typeof ApiPublicHooksRunAutomationsRoute
+  ApiPublicIcsTokenRoute: typeof ApiPublicIcsTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -356,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RescheduleTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cancel/$token': {
       id: '/cancel/$token'
       path: '/cancel/$token'
@@ -389,6 +434,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/schedule': {
+      id: '/_authenticated/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform': {
@@ -468,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/ics/$token': {
+      id: '/api/public/ics/$token'
+      path: '/api/public/ics/$token'
+      fullPath: '/api/public/ics/$token'
+      preLoaderRoute: typeof ApiPublicIcsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/run-automations': {
       id: '/api/public/hooks/run-automations'
       path: '/api/public/hooks/run-automations'
@@ -490,6 +549,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
@@ -507,6 +567,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
@@ -521,21 +582,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BookSlugRoute: BookSlugRoute,
   CancelTokenRoute: CancelTokenRoute,
+  PTokenRoute: PTokenRoute,
   RescheduleTokenRoute: RescheduleTokenRoute,
   WaitlistJoinSlugRoute: WaitlistJoinSlugRoute,
   WaitlistTokenRoute: WaitlistTokenRoute,
   ApiPublicHooksRunAutomationsRoute: ApiPublicHooksRunAutomationsRoute,
+  ApiPublicIcsTokenRoute: ApiPublicIcsTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
