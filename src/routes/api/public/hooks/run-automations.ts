@@ -73,7 +73,7 @@ export const Route = createFileRoute("/api/public/hooks/run-automations")({
 
 type DispatchResult = { channel: string; skipped?: boolean; reason?: string; provider_id?: string };
 
-async function dispatch(sb: any, run: any, resendKey: string | undefined): Promise<DispatchResult> {
+async function dispatch(sb: any, run: any, resendKey: string | undefined): Promise<DispatchResult[]> {
   // Resolve booking + tenant context for templating
   let booking: any = null;
   let tenant: any = null;
@@ -92,14 +92,6 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     service = data;
   }
 
-  // No email key configured → mark as skipped so the queue stays observable
-  if (!resendKey) {
-    return { channel: "email", skipped: true, reason: "RESEND_API_KEY not configured" };
-  }
-
-  let to: string | null = null;
-  let subject = "";
-  let html = "";
   const brand = tenant?.brand_color || "#C5283D";
   const portalUrl = booking?.portal_token
     ? `https://hola-biz-os.lovable.app/p/${booking.portal_token}`
@@ -109,10 +101,20 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     ? `${startsAt.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })} at ${startsAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`
     : "";
 
+  let toEmail: string | null = null;
+  let toPhone: string | null = null;
+  let subject = "";
+  let html = "";
+  let waText = "";
+  // Channels: email always; WhatsApp for booking_confirmed + reminders only
+  let waEnabled = false;
+
   switch (run.trigger_type) {
     case "booking_confirmed":
     case "booking_created": {
-      to = booking?.customer_email ?? null;
+      toEmail = booking?.customer_email ?? null;
+      toPhone = booking?.customer_phone ?? null;
+      waEnabled = true;
       subject = `Your booking with ${tenant?.name ?? "us"} is confirmed`;
       html = renderBookingEmail({
         title: "You're booked! 🎉",
@@ -125,11 +127,14 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
         brand,
         ctaLabel: "View my booking",
       });
+      waText = `Hi ${booking?.customer_name ?? ""}, your booking with ${tenant?.name ?? "us"} is confirmed ✅\n${service?.name ? service.name + " — " : ""}${whenStr}\nRef: ${booking?.ref_code ?? ""}${portalUrl ? `\nManage: ${portalUrl}` : ""}`;
       break;
     }
     case "before_appointment":
     case "reminder_24h": {
-      to = booking?.customer_email ?? null;
+      toEmail = booking?.customer_email ?? null;
+      toPhone = booking?.customer_phone ?? null;
+      waEnabled = true;
       subject = `Reminder: your appointment tomorrow with ${tenant?.name ?? "us"}`;
       html = renderBookingEmail({
         title: "See you soon 👋",
@@ -142,10 +147,11 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
         brand,
         ctaLabel: "Manage my booking",
       });
+      waText = `Reminder 👋 ${booking?.customer_name ?? ""}, you have an appointment with ${tenant?.name ?? "us"}.\n${service?.name ? service.name + " — " : ""}${whenStr}${portalUrl ? `\nManage: ${portalUrl}` : ""}`;
       break;
     }
     case "post_visit_review": {
-      to = booking?.customer_email ?? null;
+      toEmail = booking?.customer_email ?? null;
       subject = `How was your visit to ${tenant?.name ?? "us"}?`;
       html = renderBookingEmail({
         title: "Thanks for visiting 💛",
@@ -162,8 +168,10 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     }
     case "waitlist_offer": {
       const { claim_token } = run.payload ?? {};
-      const { data: w } = await sb.from("waiting_list").select("customer_email, customer_name").eq("id", run.payload?.waiting_list_id).maybeSingle();
-      to = w?.customer_email ?? null;
+      const { data: w } = await sb.from("waiting_list").select("customer_email, customer_name, customer_phone").eq("id", run.payload?.waiting_list_id).maybeSingle();
+      toEmail = w?.customer_email ?? null;
+      toPhone = w?.customer_phone ?? null;
+      waEnabled = true;
       const claimUrl = claim_token ? `https://hola-biz-os.lovable.app/waitlist/${claim_token}` : null;
       subject = `A slot opened up at ${tenant?.name ?? "us"} — claim it now`;
       html = renderBookingEmail({
@@ -177,43 +185,57 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
         brand,
         ctaLabel: "Claim my slot",
       });
+      waText = `⏰ A spot just opened at ${tenant?.name ?? "us"}! Claim within 2h: ${claimUrl ?? ""}`;
       break;
     }
     default: {
-      return { channel: "email", skipped: true, reason: `unsupported trigger: ${run.trigger_type}` };
+      return [{ channel: "email", skipped: true, reason: `unsupported trigger: ${run.trigger_type}` }];
     }
   }
 
-  if (!to) {
-    return { channel: "email", skipped: true, reason: "no recipient email" };
+  const results: DispatchResult[] = [];
+  results.push(await sendEmail({ to: toEmail, subject, html, tenant, resendKey }));
+  if (waEnabled && waText) {
+    results.push(await sendWhatsApp({ to: toPhone, text: waText }));
   }
+  return results;
+}
 
-  const fromName = tenant?.name ?? "HolaWeb";
-  // Resend's onboarding sender is used until each tenant verifies their own domain.
+async function sendEmail(opts: { to: string | null; subject: string; html: string; tenant: any; resendKey: string | undefined }): Promise<DispatchResult> {
+  if (!opts.resendKey) return { channel: "email", skipped: true, reason: "RESEND_API_KEY not configured" };
+  if (!opts.to) return { channel: "email", skipped: true, reason: "no recipient email" };
+  const fromName = opts.tenant?.name ?? "HolaWeb";
   const fromAddress = `${fromName} <onboarding@resend.dev>`;
-
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${resendKey}`,
-    },
-    body: JSON.stringify({
-      from: fromAddress,
-      to: [to],
-      subject,
-      html,
-      reply_to: tenant?.email ?? undefined,
-    }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${opts.resendKey}` },
+    body: JSON.stringify({ from: fromAddress, to: [opts.to], subject: opts.subject, html: opts.html, reply_to: opts.tenant?.email ?? undefined }),
   });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend ${res.status}: ${body.slice(0, 200)}`);
-  }
+  if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const json: any = await res.json().catch(() => ({}));
   return { channel: "email", provider_id: json?.id ?? null };
 }
+
+async function sendWhatsApp(opts: { to: string | null; text: string }): Promise<DispatchResult> {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM; // e.g. "whatsapp:+14155238886"
+  if (!sid || !token || !from) {
+    return { channel: "whatsapp", skipped: true, reason: "Twilio WhatsApp not configured" };
+  }
+  if (!opts.to) return { channel: "whatsapp", skipped: true, reason: "no recipient phone" };
+  const toNumber = opts.to.startsWith("whatsapp:") ? opts.to : `whatsapp:${opts.to.replace(/\s+/g, "")}`;
+  const auth = Buffer.from(`${sid}:${token}`).toString("base64");
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Authorization: `Basic ${auth}` },
+    body: new URLSearchParams({ To: toNumber, From: from, Body: opts.text }),
+  });
+  if (!res.ok) throw new Error(`Twilio ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const json: any = await res.json().catch(() => ({}));
+  return { channel: "whatsapp", provider_id: json?.sid ?? null };
+}
+
 
 function escapeHtml(s: string | null | undefined) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
