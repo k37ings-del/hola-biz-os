@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -66,7 +66,8 @@ function PublicBookingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [intake, setIntake] = useState<Record<string, string>>({});
-  const [confirmation, setConfirmation] = useState<{ id: string; ref_code: string } | null>(null);
+  const [confirmation, setConfirmation] = useState<{ id: string; ref_code: string; portal_token?: string } | null>(null);
+  const navigate = useNavigate();
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const service = useMemo(() => services.find((s) => s.id === serviceId), [services, serviceId]);
@@ -139,9 +140,15 @@ function PublicBookingPage() {
         },
       });
     },
-    onSuccess: (r) => {
+    onSuccess: (r: any) => {
       setConfirmation(r);
       setStep("done");
+      // Auto-redirect to the customer portal after a short celebration moment
+      if (r?.portal_token) {
+        setTimeout(() => {
+          navigate({ to: "/p/$token", params: { token: r.portal_token } });
+        }, 2200);
+      }
     },
     onError: (e: any) => toast.error(e.message ?? "Booking failed"),
   });
@@ -373,8 +380,16 @@ function PublicBookingPage() {
             <p className="text-sm text-muted-foreground mt-2">Your reference is</p>
             <p className="font-mono font-semibold text-lg mt-1">{confirmation.ref_code}</p>
             <p className="text-sm text-muted-foreground mt-6 max-w-sm mx-auto">
-              We've reserved your slot. Check your {email ? "email" : "phone"} for confirmation and payment instructions.
+              Opening your personal booking portal…
             </p>
+            {confirmation.portal_token && (
+              <a
+                href={`/p/${confirmation.portal_token}`}
+                className="inline-block mt-4 text-sm font-medium text-primary hover:underline"
+              >
+                Open my portal now →
+              </a>
+            )}
           </div>
         )}
       </main>

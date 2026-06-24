@@ -108,37 +108,46 @@ export type Database = {
       }
       automation_runs: {
         Row: {
-          automation_id: string
+          automation_id: string | null
           booking_id: string | null
           created_at: string
           error: string | null
           id: string
+          payload: Json
+          result: Json | null
           scheduled_at: string
           sent_at: string | null
           status: string
           tenant_id: string
+          trigger_type: string | null
         }
         Insert: {
-          automation_id: string
+          automation_id?: string | null
           booking_id?: string | null
           created_at?: string
           error?: string | null
           id?: string
+          payload?: Json
+          result?: Json | null
           scheduled_at: string
           sent_at?: string | null
           status?: string
           tenant_id: string
+          trigger_type?: string | null
         }
         Update: {
-          automation_id?: string
+          automation_id?: string | null
           booking_id?: string | null
           created_at?: string
           error?: string | null
           id?: string
+          payload?: Json
+          result?: Json | null
           scheduled_at?: string
           sent_at?: string | null
           status?: string
           tenant_id?: string
+          trigger_type?: string | null
         }
         Relationships: [
           {
