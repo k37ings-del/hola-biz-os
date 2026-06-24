@@ -1297,6 +1297,7 @@ export type Database = {
       }
       waiting_list: {
         Row: {
+          claim_token: string | null
           created_at: string
           customer_email: string | null
           customer_name: string
@@ -1307,6 +1308,7 @@ export type Database = {
           id: string
           notes: string | null
           notified_at: string | null
+          offered_starts_at: string | null
           service_id: string | null
           staff_id: string | null
           status: string
@@ -1314,6 +1316,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          claim_token?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name: string
@@ -1324,6 +1327,7 @@ export type Database = {
           id?: string
           notes?: string | null
           notified_at?: string | null
+          offered_starts_at?: string | null
           service_id?: string | null
           staff_id?: string | null
           status?: string
@@ -1331,6 +1335,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          claim_token?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string
@@ -1341,6 +1346,7 @@ export type Database = {
           id?: string
           notes?: string | null
           notified_at?: string | null
+          offered_starts_at?: string | null
           service_id?: string | null
           staff_id?: string | null
           status?: string
@@ -1376,6 +1382,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_platform_metrics: { Args: never; Returns: Json }
       current_tenant_id: { Args: never; Returns: string }
       current_user_role: {
         Args: never
@@ -1386,6 +1393,7 @@ export type Database = {
         Args: { _reason: string; _token: string }
         Returns: Json
       }
+      public_claim_waitlist_slot: { Args: { _token: string }; Returns: Json }
       public_create_booking: {
         Args: {
           _customer_email: string
@@ -1414,6 +1422,21 @@ export type Database = {
         Returns: Json
       }
       public_get_booking_page: { Args: { _slug: string }; Returns: Json }
+      public_get_waitlist_offer: { Args: { _token: string }; Returns: Json }
+      public_join_waitlist: {
+        Args: {
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+          _desired_from: string
+          _desired_to: string
+          _notes: string
+          _service_id: string
+          _staff_id: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       public_reschedule_booking: {
         Args: { _new_starts_at: string; _token: string }
         Returns: Json

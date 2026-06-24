@@ -264,18 +264,27 @@ function PublicBookingPage() {
             ) : slots.length === 0 ? (
               <Empty text="No slots available on this day. Try another date." />
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {slots.map((s) => (
-                  <button
-                    key={s.iso}
-                    disabled={s.taken}
-                    onClick={() => { setSlot(s.iso); next("info"); }}
-                    className="py-3 px-2 rounded-md border text-sm font-medium hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:line-through"
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {slots.map((s) => (
+                    <button
+                      key={s.iso}
+                      disabled={s.taken}
+                      onClick={() => { setSlot(s.iso); next("info"); }}
+                      className="py-3 px-2 rounded-md border text-sm font-medium hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:line-through"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 p-3 rounded-md bg-muted/50 text-xs text-muted-foreground flex items-center justify-between gap-2">
+                  <span>Don't see a time that works?</span>
+                  <a
+                    href={`/waitlist-join/${tenant.slug}?service=${serviceId}${staffId ? `&staff=${staffId}` : ""}${date ? `&from=${date.toISOString().slice(0,10)}` : ""}`}
+                    className="text-primary font-medium hover:underline"
+                  >Join the waiting list →</a>
+                </div>
+              </>
             )}
           </Section>
         )}

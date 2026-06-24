@@ -12,12 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WaitlistTokenRouteImport } from './routes/waitlist.$token'
+import { Route as WaitlistJoinSlugRouteImport } from './routes/waitlist-join.$slug'
 import { Route as RescheduleTokenRouteImport } from './routes/reschedule.$token'
 import { Route as CancelTokenRouteImport } from './routes/cancel.$token'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
@@ -42,6 +45,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaitlistTokenRoute = WaitlistTokenRouteImport.update({
+  id: '/waitlist/$token',
+  path: '/waitlist/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaitlistJoinSlugRoute = WaitlistJoinSlugRouteImport.update({
+  id: '/waitlist-join/$slug',
+  path: '/waitlist-join/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RescheduleTokenRoute = RescheduleTokenRouteImport.update({
@@ -72,6 +85,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
@@ -145,12 +163,15 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof AuthenticatedInboxRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRoutesByTo {
@@ -166,12 +187,15 @@ export interface FileRoutesByTo {
   '/inbox': typeof AuthenticatedInboxRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRoutesById {
@@ -189,12 +213,15 @@ export interface FileRoutesById {
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/book/$slug': typeof BookSlugRoute
   '/cancel/$token': typeof CancelTokenRoute
   '/reschedule/$token': typeof RescheduleTokenRoute
+  '/waitlist-join/$slug': typeof WaitlistJoinSlugRoute
+  '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
 }
 export interface FileRouteTypes {
@@ -212,12 +239,15 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/invoices'
     | '/payments'
+    | '/platform'
     | '/services'
     | '/settings'
     | '/staff'
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -233,12 +263,15 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/invoices'
     | '/payments'
+    | '/platform'
     | '/services'
     | '/settings'
     | '/staff'
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   id:
     | '__root__'
@@ -255,12 +288,15 @@ export interface FileRouteTypes {
     | '/_authenticated/inbox'
     | '/_authenticated/invoices'
     | '/_authenticated/payments'
+    | '/_authenticated/platform'
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/staff'
     | '/book/$slug'
     | '/cancel/$token'
     | '/reschedule/$token'
+    | '/waitlist-join/$slug'
+    | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
   fileRoutesById: FileRoutesById
 }
@@ -271,6 +307,8 @@ export interface RootRouteChildren {
   BookSlugRoute: typeof BookSlugRoute
   CancelTokenRoute: typeof CancelTokenRoute
   RescheduleTokenRoute: typeof RescheduleTokenRoute
+  WaitlistJoinSlugRoute: typeof WaitlistJoinSlugRoute
+  WaitlistTokenRoute: typeof WaitlistTokenRoute
   ApiPublicHooksRunAutomationsRoute: typeof ApiPublicHooksRunAutomationsRoute
 }
 
@@ -295,6 +333,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/waitlist/$token': {
+      id: '/waitlist/$token'
+      path: '/waitlist/$token'
+      fullPath: '/waitlist/$token'
+      preLoaderRoute: typeof WaitlistTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/waitlist-join/$slug': {
+      id: '/waitlist-join/$slug'
+      path: '/waitlist-join/$slug'
+      fullPath: '/waitlist-join/$slug'
+      preLoaderRoute: typeof WaitlistJoinSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reschedule/$token': {
@@ -337,6 +389,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -430,6 +489,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
@@ -446,6 +506,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
@@ -461,6 +522,8 @@ const rootRouteChildren: RootRouteChildren = {
   BookSlugRoute: BookSlugRoute,
   CancelTokenRoute: CancelTokenRoute,
   RescheduleTokenRoute: RescheduleTokenRoute,
+  WaitlistJoinSlugRoute: WaitlistJoinSlugRoute,
+  WaitlistTokenRoute: WaitlistTokenRoute,
   ApiPublicHooksRunAutomationsRoute: ApiPublicHooksRunAutomationsRoute,
 }
 export const routeTree = rootRouteImport
