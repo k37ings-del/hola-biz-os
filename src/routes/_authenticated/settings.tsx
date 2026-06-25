@@ -52,7 +52,7 @@ function SettingsPage() {
 
 /* ---------- Branding / business / hours (shared form state) ---------- */
 
-type Hours = Record<string, { open: boolean; start: string; end: string }>;
+type Hours = Record<string, { active: boolean; open: string; close: string }>;
 
 function BrandingPanel({ section }: { section: "branding" | "business" | "hours" }) {
   const qc = useQueryClient();
