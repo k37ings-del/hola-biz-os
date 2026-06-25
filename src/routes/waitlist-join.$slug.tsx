@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getBookingPage } from "@/lib/public-booking.functions";
 import { joinWaitlist } from "@/lib/waitlist.functions";
+import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/waitlist-join/$slug")({
   ssr: false,
@@ -27,6 +28,7 @@ function WaitlistJoinPage() {
     queryKey: ["waitlist-page", slug],
     queryFn: () => fetchPage({ data: { slug } }),
   });
+  useTenantFavicon((page as any)?.tenant?.logo_url);
 
   const [serviceId, setServiceId] = useState(search.get("service") ?? "");
   const [staffId] = useState(search.get("staff"));
