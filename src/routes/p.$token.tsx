@@ -35,6 +35,7 @@ function PortalPage() {
     queryKey: ["customer-portal", token],
     queryFn: () => fetchFn({ data: { token } }),
   });
+  useTenantFavicon((data as any)?.tenant?.logo_url);
 
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -42,7 +43,6 @@ function PortalPage() {
   if (error || !data) throw notFound();
 
   const { booking, service, staff, tenant, history } = data as any;
-  useTenantFavicon(tenant?.logo_url);
   const brand = tenant.brand_color || "#C5283D";
   const startsAt = new Date(booking.starts_at);
   const upcoming = (history as any[]).filter((h) => new Date(h.starts_at) >= new Date() && h.status !== "CANCELLED");
