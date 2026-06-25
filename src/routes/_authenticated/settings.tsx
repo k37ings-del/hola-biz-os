@@ -233,14 +233,14 @@ function BrandingPanel({ section }: { section: "branding" | "business" | "hours"
           </CardHeader>
           <CardContent className="space-y-2">
             {DAYS.map((day) => {
-              const d = form.business_hours?.[day] ?? { open: false, start: "09:00", end: "17:00" };
-              const update = (patch: any) => set({ business_hours: { ...form.business_hours, [day]: { ...d, ...patch } } });
+              const d = form.business_hours?.[day.key] ?? { active: false, open: "09:00", close: "17:00" };
+              const update = (patch: any) => set({ business_hours: { ...form.business_hours, [day.key]: { ...d, ...patch } } });
               return (
-                <div key={day} className="grid grid-cols-[90px_70px_1fr_1fr] items-center gap-3 py-1.5 border-b last:border-0">
-                  <span className="text-sm capitalize">{day}</span>
-                  <div className="flex items-center gap-2"><Switch checked={d.open} onCheckedChange={(v) => update({ open: v })} /><span className="text-[11px] text-muted-foreground">{d.open ? "Open" : "Closed"}</span></div>
-                  <Input type="time" value={d.start} onChange={(e) => update({ start: e.target.value })} disabled={!d.open} />
-                  <Input type="time" value={d.end} onChange={(e) => update({ end: e.target.value })} disabled={!d.open} />
+                <div key={day.key} className="grid grid-cols-[110px_90px_1fr_1fr] items-center gap-3 py-1.5 border-b last:border-0">
+                  <span className="text-sm">{day.label}</span>
+                  <div className="flex items-center gap-2"><Switch checked={d.active} onCheckedChange={(v) => update({ active: v })} /><span className="text-[11px] text-muted-foreground">{d.active ? "Open" : "Closed"}</span></div>
+                  <Input type="time" value={d.open} onChange={(e) => update({ open: e.target.value })} disabled={!d.active} />
+                  <Input type="time" value={d.close} onChange={(e) => update({ close: e.target.value })} disabled={!d.active} />
                 </div>
               );
             })}
