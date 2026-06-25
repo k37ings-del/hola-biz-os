@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { formatCurrency } from "@/lib/format";
 import { getBookingPage, getAvailability, createPublicBooking } from "@/lib/public-booking.functions";
+import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/book/$slug")({
   ssr: false,
@@ -53,6 +54,7 @@ const STEPS: { key: Step; label: string }[] = [
 function PublicBookingPage() {
   const page = Route.useLoaderData() as any;
   const tenant = page.tenant;
+  useTenantFavicon(tenant?.logo_url);
   const services: any[] = page.services ?? [];
   const staffAll: any[] = page.staff ?? [];
   const intakeForm: { id: string; label: string; type: "text" | "textarea"; required?: boolean }[] = page.tenant.intake_form ?? [];

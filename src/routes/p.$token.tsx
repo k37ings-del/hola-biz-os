@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
 import { getCustomerPortal } from "@/lib/customer-portal.functions";
+import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -41,6 +42,7 @@ function PortalPage() {
   if (error || !data) throw notFound();
 
   const { booking, service, staff, tenant, history } = data as any;
+  useTenantFavicon(tenant?.logo_url);
   const brand = tenant.brand_color || "#C5283D";
   const startsAt = new Date(booking.starts_at);
   const upcoming = (history as any[]).filter((h) => new Date(h.starts_at) >= new Date() && h.status !== "CANCELLED");
