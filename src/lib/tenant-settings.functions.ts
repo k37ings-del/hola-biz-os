@@ -16,9 +16,9 @@ function assertAdmin(role: string | null) {
 }
 
 const BusinessHoursDay = z.object({
-  open: z.boolean(),
-  start: z.string().regex(/^\d{2}:\d{2}$/),
-  end: z.string().regex(/^\d{2}:\d{2}$/),
+  active: z.boolean(),
+  open: z.string().regex(/^\d{2}:\d{2}$/),
+  close: z.string().regex(/^\d{2}:\d{2}$/),
 });
 
 const BrandingSchema = z.object({
