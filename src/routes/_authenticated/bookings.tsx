@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Calendar, Plus, Loader2, Save, Link as LinkIcon } from "lucide-react";
+import { Calendar, Plus, Loader2, Save, Link as LinkIcon, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/shell/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
-import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
+import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions, deleteBooking } from "@/lib/bookings.functions";
 
 export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({ meta: [{ title: "Bookings · Holaweb Business OS" }] }),
@@ -53,6 +53,7 @@ function BookingsPage() {
   const fetchList = useServerFn(listBookings);
   const saveBooking = useServerFn(upsertBooking);
   const updateStatus = useServerFn(setBookingStatus);
+  const removeBooking = useServerFn(deleteBooking);
   const fetchOptions = useServerFn(bookingFormOptions);
 
   const [filter, setFilter] = useState<string>("all");
@@ -128,6 +129,22 @@ function BookingsPage() {
       toast.success("Status updated");
     },
   });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => removeBooking({ data: { id } }),
+    onSuccess: () => {
+      setEditorOpen(false);
+      qc.invalidateQueries({ queryKey: ["bookings-list"] });
+      toast.success("Booking deleted");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
+  });
+
+  const confirmDelete = (id: string, ref?: string) => {
+    if (typeof window !== "undefined" && window.confirm(`Delete booking ${ref ?? ""}? This cannot be undone.`)) {
+      deleteMut.mutate(id);
+    }
+  };
 
   const stats = q.data?.stats ?? { upcoming: 0, today: 0, pending: 0, completed_week: 0 };
 
@@ -207,12 +224,24 @@ function BookingsPage() {
                   <TableCell><StatusBadge status={b.status} /></TableCell>
                   <TableCell className="text-right">{formatCurrency(b.amount_cents, b.currency)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <Select value={b.status} onValueChange={(v) => setStatusMut.mutate({ id: b.id, status: v as any })}>
-                      <SelectTrigger className="h-8 w-[150px] ml-auto"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Select value={b.status} onValueChange={(v) => setStatusMut.mutate({ id: b.id, status: v as any })}>
+                        <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        title="Delete booking"
+                        onClick={() => confirmDelete(b.id, b.ref_code)}
+                        disabled={deleteMut.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -228,6 +257,16 @@ function BookingsPage() {
         description="Bookings sync to the customer's WhatsApp."
         footer={
           <>
+            {form?.id && (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto"
+                onClick={() => confirmDelete(form.id!)}
+                disabled={deleteMut.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
             <Button onClick={() => save.mutate()} disabled={save.isPending}>
               {save.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}

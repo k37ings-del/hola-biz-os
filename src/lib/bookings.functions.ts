@@ -119,3 +119,18 @@ export const bookingFormOptions = createServerFn({ method: "GET" })
     ]);
     return { customers: customers ?? [], services: services ?? [], staff: staff ?? [] };
   });
+
+export const deleteBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
+    const { error } = await context.supabase
+      .from("bookings")
+      .delete()
+      .eq("id", data.id)
+      .eq("tenant_id", tenantId);
+    if (error) throw error;
+    return { ok: true };
+  });

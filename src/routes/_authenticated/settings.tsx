@@ -151,7 +151,15 @@ function BrandingPanel({ section }: { section: "branding" | "business" | "hours"
                     placeholder="https://…/logo.png"
                     className="mt-1"
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">Square PNG/SVG works best. This image is also used as the browser tab icon (favicon) on your booking page, customer portal, and waitlist links.</p>
+                  <div className="mt-2 rounded-md border bg-muted/40 p-3 text-[11px] text-muted-foreground space-y-1.5">
+                    <p className="font-medium text-foreground">How to add your logo</p>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Upload a square PNG or SVG (at least 256×256) to any image host — e.g. <a className="underline" href="https://imgur.com/upload" target="_blank" rel="noreferrer">Imgur</a>, <a className="underline" href="https://postimages.org" target="_blank" rel="noreferrer">PostImages</a>, your Google Drive (set to "Anyone with the link"), Dropbox public link, or your own website.</li>
+                      <li>Right-click the uploaded image and choose <em>Copy image address</em> — the URL must end in <code>.png</code>, <code>.jpg</code>, or <code>.svg</code>.</li>
+                      <li>Paste that URL into the field above and hit <em>Save changes</em>.</li>
+                    </ol>
+                    <p>The logo appears on your booking page, customer portal, waitlist links, automated emails, and as the browser tab icon (favicon).</p>
+                  </div>
                 </div>
               </div>
 
