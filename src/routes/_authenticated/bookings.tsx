@@ -53,6 +53,7 @@ function BookingsPage() {
   const fetchList = useServerFn(listBookings);
   const saveBooking = useServerFn(upsertBooking);
   const updateStatus = useServerFn(setBookingStatus);
+  const removeBooking = useServerFn(deleteBooking);
   const fetchOptions = useServerFn(bookingFormOptions);
 
   const [filter, setFilter] = useState<string>("all");
