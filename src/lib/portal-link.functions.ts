@@ -4,11 +4,9 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
 }
 
 function getOrigin(): string {
@@ -65,9 +63,7 @@ async function sendPortalEmail(args: {
 }
 
 export const requestPortalLink = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ contact: z.string().trim().min(4).max(120) }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ contact: z.string().trim().min(4).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: result, error } = await sb.rpc("public_request_portal_link", {

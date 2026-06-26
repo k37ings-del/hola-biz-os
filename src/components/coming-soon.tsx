@@ -15,7 +15,8 @@ export function ComingSoon({ title, description }: { title: string; description?
           </div>
           <h2 className="text-lg font-medium">Module in progress</h2>
           <p className="text-sm text-muted-foreground max-w-md">
-            This module's schema is live and ready. The full interface ships in the next build pass — your data is safe and waiting.
+            This module's schema is live and ready. The full interface ships in the next build pass
+            — your data is safe and waiting.
           </p>
         </CardContent>
       </Card>

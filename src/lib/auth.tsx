@@ -91,7 +91,6 @@ export function useCurrentUser() {
         }
       }
 
-
       if (!userRow) return null;
       const { data: tenant, error: tErr } = await supabase
         .from("tenants")

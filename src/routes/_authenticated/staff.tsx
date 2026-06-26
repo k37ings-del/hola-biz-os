@@ -64,12 +64,7 @@ import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { formatPhone, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  listStaff,
-  upsertStaff,
-  setStaffActive,
-  deleteStaff,
-} from "@/lib/staff.functions";
+import { listStaff, upsertStaff, setStaffActive, deleteStaff } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({ meta: [{ title: "Staff · Holaweb Business OS" }] }),
@@ -154,8 +149,16 @@ function StaffPage() {
   const bookings: any[] = q.data?.bookings ?? [];
 
   const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-  const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ).toISOString();
+  const endOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 1,
+  ).toISOString();
 
   const servicesByStaff = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -199,7 +202,7 @@ function StaffPage() {
 
   const activeToday = staffList.filter((s) => s.active).length;
 
-  const selected = slideId ? staffList.find((s) => s.id === slideId) ?? null : null;
+  const selected = slideId ? (staffList.find((s) => s.id === slideId) ?? null) : null;
 
   const openSlideOver = (s: any) => {
     setSlideId(s.id);
@@ -273,8 +276,14 @@ function StaffPage() {
         title="Staff"
         description="Manage your team members and their assignments"
         actions={
-          <Button onClick={() => { setCreateForm(emptyForm()); setCreateOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1" />Add staff member
+          <Button
+            onClick={() => {
+              setCreateForm(emptyForm());
+              setCreateOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add staff member
           </Button>
         }
       />
@@ -317,8 +326,14 @@ function StaffPage() {
             title="No staff yet"
             description="Add your first team member to start assigning bookings."
             action={
-              <Button onClick={() => { setCreateForm(emptyForm()); setCreateOpen(true); }}>
-                <Plus className="h-4 w-4 mr-1" />Add staff member
+              <Button
+                onClick={() => {
+                  setCreateForm(emptyForm());
+                  setCreateOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add staff member
               </Button>
             }
           />
@@ -340,11 +355,7 @@ function StaffPage() {
                 const svcCount = servicesByStaff.get(s.id)?.length ?? 0;
                 const todayCount = bookingsTodayByStaff.get(s.id) ?? 0;
                 return (
-                  <TableRow
-                    key={s.id}
-                    className="cursor-pointer"
-                    onClick={() => openSlideOver(s)}
-                  >
+                  <TableRow key={s.id} className="cursor-pointer" onClick={() => openSlideOver(s)}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <InitialsAvatar name={s.name} seed={s.id} />
@@ -357,11 +368,15 @@ function StaffPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[11px]">{s.role}</Badge>
+                      <Badge variant="outline" className="text-[11px]">
+                        {s.role}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-sm">{formatPhone(s.wa_number)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-[11px]">{svcCount}</Badge>
+                      <Badge variant="secondary" className="text-[11px]">
+                        {svcCount}
+                      </Badge>
                     </TableCell>
                     <TableCell className="font-medium">{todayCount}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -391,10 +406,12 @@ function StaffPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openSlideOver(s)}>
-                              <Eye className="h-3.5 w-3.5 mr-2" />View profile
+                              <Eye className="h-3.5 w-3.5 mr-2" />
+                              View profile
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openSlideOver(s)}>
-                              <Users className="h-3.5 w-3.5 mr-2" />Assign services
+                              <Users className="h-3.5 w-3.5 mr-2" />
+                              Assign services
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => toggleMut.mutate({ id: s.id, active: !s.active })}
@@ -407,7 +424,8 @@ function StaffPage() {
                               className="text-danger"
                               onClick={() => setConfirmDelete(s.id)}
                             >
-                              <Trash2 className="h-3.5 w-3.5 mr-2" />Remove
+                              <Trash2 className="h-3.5 w-3.5 mr-2" />
+                              Remove
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -463,7 +481,9 @@ function StaffPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {ROLES.map((r) => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -484,7 +504,9 @@ function StaffPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
             <Button
               onClick={() => saveMut.mutate(createForm)}
               disabled={saveMut.isPending || !createForm.name.trim()}
@@ -503,18 +525,19 @@ function StaffPage() {
       {/* Slide-over: profile / schedule / bookings */}
       <SlideOver
         open={!!slideId}
-        onOpenChange={(v) => { if (!v) closeSlideOver(); }}
+        onOpenChange={(v) => {
+          if (!v) closeSlideOver();
+        }}
         title={selected?.name ?? "Staff"}
         description={selected?.role}
         widthClassName="sm:max-w-[560px]"
         footer={
           editorForm && (
             <>
-              <Button variant="outline" onClick={closeSlideOver}>Close</Button>
-              <Button
-                onClick={() => saveMut.mutate(editorForm)}
-                disabled={saveMut.isPending}
-              >
+              <Button variant="outline" onClick={closeSlideOver}>
+                Close
+              </Button>
+              <Button onClick={() => saveMut.mutate(editorForm)} disabled={saveMut.isPending}>
                 {saveMut.isPending ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
@@ -577,7 +600,9 @@ function StaffPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {ROLES.map((r) => (
-                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -673,12 +698,16 @@ function StaffPage() {
 
       <ConfirmDialog
         open={!!confirmDelete}
-        onOpenChange={(v) => { if (!v) setConfirmDelete(null); }}
+        onOpenChange={(v) => {
+          if (!v) setConfirmDelete(null);
+        }}
         title="Remove staff member?"
         description="This will permanently delete the staff record and unassign their services."
         confirmLabel="Remove"
         destructive
-        onConfirm={() => { if (confirmDelete) deleteMut.mutate(confirmDelete); }}
+        onConfirm={() => {
+          if (confirmDelete) deleteMut.mutate(confirmDelete);
+        }}
       />
     </div>
   );
@@ -727,7 +756,9 @@ function ServiceMultiSelect({
             />
             <span className="flex-1 truncate">{s.name}</span>
             {!s.active && (
-              <Badge variant="outline" className="text-[10px]">inactive</Badge>
+              <Badge variant="outline" className="text-[10px]">
+                inactive
+              </Badge>
             )}
           </label>
         );
@@ -745,11 +776,7 @@ function StaffBookings({ staffId, bookings }: { staffId: string; bookings: any[]
   }, [bookings, staffId]);
 
   if (!upcoming.length) {
-    return (
-      <p className="text-sm text-muted-foreground text-center py-8">
-        No upcoming bookings.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground text-center py-8">No upcoming bookings.</p>;
   }
   return (
     <div className="space-y-2">
@@ -759,7 +786,9 @@ function StaffBookings({ staffId, bookings }: { staffId: string; bookings: any[]
             <p className="text-sm font-medium">{formatDateTime(b.starts_at)}</p>
             <p className="text-xs text-muted-foreground">{b.status}</p>
           </div>
-          <Badge variant="outline" className="text-[11px]">{b.status}</Badge>
+          <Badge variant="outline" className="text-[11px]">
+            {b.status}
+          </Badge>
         </div>
       ))}
     </div>
