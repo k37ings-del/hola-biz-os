@@ -31,7 +31,8 @@ export const Route = createFileRoute("/api/public/ics/$token")({
           const z = (n: number) => String(n).padStart(2, "0");
           return `${d.getUTCFullYear()}${z(d.getUTCMonth() + 1)}${z(d.getUTCDate())}T${z(d.getUTCHours())}${z(d.getUTCMinutes())}${z(d.getUTCSeconds())}Z`;
         };
-        const escape = (s: string) => s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+        const escape = (s: string) =>
+          s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
 
         const lines: string[] = [
           "BEGIN:VCALENDAR",
@@ -50,7 +51,9 @@ export const Route = createFileRoute("/api/public/ics/$token")({
             b.ref_code && `Ref: ${b.ref_code}`,
             b.customer_phone && `Phone: ${b.customer_phone}`,
             `Status: ${b.status}`,
-          ].filter(Boolean).join("\n");
+          ]
+            .filter(Boolean)
+            .join("\n");
           lines.push(
             "BEGIN:VEVENT",
             `UID:${b.id}@holaweb`,

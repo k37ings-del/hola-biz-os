@@ -39,10 +39,10 @@
   --color-ring-offset-background: var(--background);
 
   /* Brand palette tokens */
-  --color-cherry: #C5283D;
-  --color-yale: #1B445F;
-  --color-peach: #E9724C;
-  --color-pollen: #FFC857;
+  --color-cherry: #c5283d;
+  --color-yale: #1b445f;
+  --color-peach: #e9724c;
+  --color-pollen: #ffc857;
 
   /* Status palette */
   --color-success: var(--success);
@@ -93,40 +93,40 @@
   --popover-foreground: #0d0d0d;
 
   /* Brand: Intense Cherry */
-  --primary: #C5283D;
+  --primary: #c5283d;
   --primary-foreground: #ffffff;
 
   /* Yale Blue as secondary/anchor */
   --secondary: #eef2f5;
-  --secondary-foreground: #1B445F;
+  --secondary-foreground: #1b445f;
 
   --muted: #f3f4f6;
   --muted-foreground: #5b6772;
 
   --accent: #fff1e9;
-  --accent-foreground: #B6532E;
+  --accent-foreground: #b6532e;
 
-  --destructive: #C5283D;
+  --destructive: #c5283d;
   --destructive-foreground: #ffffff;
 
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #C5283D;
+  --ring: #c5283d;
 
   /* Status semantics */
-  --success: #1B445F;
+  --success: #1b445f;
   --success-foreground: #ffffff;
   --success-soft: #e3edf3;
 
-  --warning: #FFC857;
+  --warning: #ffc857;
   --warning-foreground: #4a3a10;
   --warning-soft: #fff4d6;
 
-  --danger: #C5283D;
+  --danger: #c5283d;
   --danger-foreground: #ffffff;
   --danger-soft: #fbe4e7;
 
-  --info: #1B445F;
+  --info: #1b445f;
   --info-foreground: #ffffff;
   --info-soft: #e3edf3;
 
@@ -134,25 +134,25 @@
   --neutral-foreground: #ffffff;
   --neutral-soft: #f3f4f6;
 
-  --amber-strong: #FFC857;
+  --amber-strong: #ffc857;
   --amber-soft: #fff4d6;
-  --orange-strong: #E9724C;
+  --orange-strong: #e9724c;
   --orange-soft: #fde3d6;
 
-  --chart-1: #C5283D;
-  --chart-2: #1B445F;
-  --chart-3: #E9724C;
-  --chart-4: #FFC857;
+  --chart-1: #c5283d;
+  --chart-2: #1b445f;
+  --chart-3: #e9724c;
+  --chart-4: #ffc857;
   --chart-5: #5b6772;
 
-  --sidebar: #1B445F;
+  --sidebar: #1b445f;
   --sidebar-foreground: #e8eef3;
-  --sidebar-primary: #C5283D;
+  --sidebar-primary: #c5283d;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #20536f;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #2a5d7a;
-  --sidebar-ring: #C5283D;
+  --sidebar-ring: #c5283d;
 }
 
 .dark {
@@ -164,7 +164,7 @@
   --popover: #11283a;
   --popover-foreground: #f0f4f7;
 
-  --primary: #E14458;
+  --primary: #e14458;
   --primary-foreground: #ffffff;
 
   --secondary: #1a3548;
@@ -172,22 +172,22 @@
   --muted: #1a3548;
   --muted-foreground: #9bb1c1;
   --accent: #2a1a14;
-  --accent-foreground: #E9724C;
+  --accent-foreground: #e9724c;
 
-  --destructive: #E14458;
+  --destructive: #e14458;
   --destructive-foreground: #ffffff;
 
-  --border: rgba(255, 255, 255, 0.10);
+  --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.12);
-  --ring: #E14458;
+  --ring: #e14458;
 
   --success: #4a8bb0;
   --success-foreground: #ffffff;
   --success-soft: #1a3548;
-  --warning: #FFC857;
+  --warning: #ffc857;
   --warning-foreground: #2a200a;
   --warning-soft: #3a2f10;
-  --danger: #E14458;
+  --danger: #e14458;
   --danger-foreground: #ffffff;
   --danger-soft: #3a1820;
   --info: #4a8bb0;
@@ -196,32 +196,33 @@
   --neutral: #9bb1c1;
   --neutral-foreground: #0c1a24;
   --neutral-soft: #1a3548;
-  --amber-strong: #FFC857;
+  --amber-strong: #ffc857;
   --amber-soft: #3a2f10;
-  --orange-strong: #E9724C;
+  --orange-strong: #e9724c;
   --orange-soft: #3a2018;
 
-  --chart-1: #E14458;
+  --chart-1: #e14458;
   --chart-2: #4a8bb0;
-  --chart-3: #E9724C;
-  --chart-4: #FFC857;
+  --chart-3: #e9724c;
+  --chart-4: #ffc857;
   --chart-5: #9bb1c1;
 
   --sidebar: #091621;
   --sidebar-foreground: #e8eef3;
-  --sidebar-primary: #E14458;
+  --sidebar-primary: #e14458;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #143046;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #E14458;
+  --sidebar-ring: #e14458;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -229,7 +230,11 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
-  h1, h2, h3, h4, .font-display {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }

@@ -3,7 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function tenantOf(supabase: any, userId: string): Promise<string | null> {
-  const { data } = await supabase.from("users").select("tenant_id").eq("supabase_auth_id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("users")
+    .select("tenant_id")
+    .eq("supabase_auth_id", userId)
+    .maybeSingle();
   return data?.tenant_id ?? null;
 }
 
@@ -11,12 +15,15 @@ export const listCustomers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
-    if (!tenantId) return { customers: [], stats: { total: 0, active_month: 0, repeat: 0, new_week: 0 } };
+    if (!tenantId)
+      return { customers: [], stats: { total: 0, active_month: 0, repeat: 0, new_week: 0 } };
 
     const [{ data: customers, error }, { data: bookingsAgg }] = await Promise.all([
       context.supabase
         .from("customers")
-        .select("id, display_name, wa_phone, email, status, booking_count, first_seen, last_seen_at, notes, tags")
+        .select(
+          "id, display_name, wa_phone, email, status, booking_count, first_seen, last_seen_at, notes, tags",
+        )
         .eq("tenant_id", tenantId)
         .order("first_seen", { ascending: false })
         .limit(500),
@@ -32,10 +39,12 @@ export const listCustomers = createServerFn({ method: "GET" })
     (bookingsAgg ?? []).forEach((b: any) => {
       if (!b.customer_id) return;
       if (b.status === "COMPLETED" || b.status === "CONFIRMED") {
-        spendByCustomer[b.customer_id] = (spendByCustomer[b.customer_id] ?? 0) + (b.amount_cents ?? 0);
+        spendByCustomer[b.customer_id] =
+          (spendByCustomer[b.customer_id] ?? 0) + (b.amount_cents ?? 0);
       }
       const cur = lastBookingByCustomer[b.customer_id];
-      if (!cur || new Date(b.starts_at) > new Date(cur)) lastBookingByCustomer[b.customer_id] = b.starts_at;
+      if (!cur || new Date(b.starts_at) > new Date(cur))
+        lastBookingByCustomer[b.customer_id] = b.starts_at;
     });
 
     const now = Date.now();
@@ -50,7 +59,9 @@ export const listCustomers = createServerFn({ method: "GET" })
 
     const stats = {
       total: enriched.length,
-      active_month: enriched.filter((c) => c.last_booking_at && new Date(c.last_booking_at).getTime() > monthAgo).length,
+      active_month: enriched.filter(
+        (c) => c.last_booking_at && new Date(c.last_booking_at).getTime() > monthAgo,
+      ).length,
       repeat: enriched.filter((c) => (c.booking_count ?? 0) >= 2).length,
       new_week: enriched.filter((c) => new Date(c.first_seen).getTime() > weekAgo).length,
     };
@@ -66,7 +77,12 @@ export const getCustomer = createServerFn({ method: "GET" })
     if (!tenantId) throw new Error("No tenant");
 
     const [{ data: customer, error }, { data: bookings }, { data: messages }] = await Promise.all([
-      context.supabase.from("customers").select("*").eq("id", data.id).eq("tenant_id", tenantId).maybeSingle(),
+      context.supabase
+        .from("customers")
+        .select("*")
+        .eq("id", data.id)
+        .eq("tenant_id", tenantId)
+        .maybeSingle(),
       context.supabase
         .from("bookings")
         .select("id, ref_code, status, starts_at, amount_cents, currency")
@@ -106,14 +122,16 @@ export const getCustomer = createServerFn({ method: "GET" })
 export const upsertCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid().optional(),
-      display_name: z.string().trim().min(1).max(120),
-      wa_phone: z.string().trim().min(4).max(32).nullable().optional(),
-      email: z.string().trim().email().max(255).nullable().or(z.literal("")).optional(),
-      notes: z.string().max(4000).nullable().optional(),
-      status: z.enum(["active", "inactive", "blocked"]).optional(),
-    }).parse(d)
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        display_name: z.string().trim().min(1).max(120),
+        wa_phone: z.string().trim().min(4).max(32).nullable().optional(),
+        email: z.string().trim().email().max(255).nullable().or(z.literal("")).optional(),
+        notes: z.string().max(4000).nullable().optional(),
+        status: z.enum(["active", "inactive", "blocked"]).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
@@ -127,22 +145,41 @@ export const upsertCustomer = createServerFn({ method: "POST" })
       ...(data.status ? { status: data.status } : {}),
     };
     if (data.id) {
-      const { error } = await context.supabase.from("customers").update(payload).eq("id", data.id).eq("tenant_id", tenantId);
+      const { error } = await context.supabase
+        .from("customers")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("tenant_id", tenantId);
       if (error) throw error;
       return { ok: true, id: data.id };
     }
-    const { data: inserted, error } = await context.supabase.from("customers").insert(payload).select("id").single();
+    const { data: inserted, error } = await context.supabase
+      .from("customers")
+      .insert(payload)
+      .select("id")
+      .single();
     if (error) throw error;
     return { ok: true, id: inserted.id };
   });
 
 export const setCustomerStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ ids: z.array(z.string().uuid()).min(1), status: z.enum(["active","inactive","blocked"]) }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        ids: z.array(z.string().uuid()).min(1),
+        status: z.enum(["active", "inactive", "blocked"]),
+      })
+      .parse(d),
+  )
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
-    const { error } = await context.supabase.from("customers").update({ status: data.status } as any).in("id", data.ids).eq("tenant_id", tenantId);
+    const { error } = await context.supabase
+      .from("customers")
+      .update({ status: data.status } as any)
+      .in("id", data.ids)
+      .eq("tenant_id", tenantId);
     if (error) throw error;
     return { ok: true, count: data.ids.length };
   });
@@ -153,7 +190,11 @@ export const updateCustomerNotes = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
-    const { error } = await context.supabase.from("customers").update({ notes: data.notes }).eq("id", data.id).eq("tenant_id", tenantId);
+    const { error } = await context.supabase
+      .from("customers")
+      .update({ notes: data.notes })
+      .eq("id", data.id)
+      .eq("tenant_id", tenantId);
     if (error) throw error;
     return { ok: true };
   });

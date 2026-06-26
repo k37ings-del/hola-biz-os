@@ -24,12 +24,40 @@ export const getDemoSnapshot = createServerFn({ method: "GET" })
 
     const [tenant, customers, bookings, services, staff, payments, invoices] = await Promise.all([
       supabaseAdmin.from("tenants").select("*").eq("id", DEMO_TENANT_ID).single(),
-      supabaseAdmin.from("customers").select("id, display_name, phone, email, created_at").eq("tenant_id", DEMO_TENANT_ID).order("created_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("bookings").select("id, ref_code, status, starts_at, amount_cents, currency, customer_id, service_id").eq("tenant_id", DEMO_TENANT_ID).order("starts_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("services").select("id, name, duration_minutes, price_cents, currency, active").eq("tenant_id", DEMO_TENANT_ID).order("name"),
-      supabaseAdmin.from("staff").select("id, full_name, role, active").eq("tenant_id", DEMO_TENANT_ID).order("full_name"),
-      supabaseAdmin.from("payments").select("id, gateway, gateway_ref, amount_cents, currency, status, paid_at, created_at").eq("tenant_id", DEMO_TENANT_ID).order("created_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("invoices").select("id, number, status, amount_cents, currency, due_at, created_at").eq("tenant_id", DEMO_TENANT_ID).order("created_at", { ascending: false }).limit(50),
+      supabaseAdmin
+        .from("customers")
+        .select("id, display_name, phone, email, created_at")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabaseAdmin
+        .from("bookings")
+        .select("id, ref_code, status, starts_at, amount_cents, currency, customer_id, service_id")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("starts_at", { ascending: false })
+        .limit(50),
+      supabaseAdmin
+        .from("services")
+        .select("id, name, duration_minutes, price_cents, currency, active")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("name"),
+      supabaseAdmin
+        .from("staff")
+        .select("id, full_name, role, active")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("full_name"),
+      supabaseAdmin
+        .from("payments")
+        .select("id, gateway, gateway_ref, amount_cents, currency, status, paid_at, created_at")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabaseAdmin
+        .from("invoices")
+        .select("id, number, status, amount_cents, currency, due_at, created_at")
+        .eq("tenant_id", DEMO_TENANT_ID)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
 
     if (tenant.error) throw tenant.error;
@@ -61,7 +89,9 @@ export const listAllTenants = createServerFn({ method: "GET" })
 
     const { data: tenants, error } = await supabaseAdmin
       .from("tenants")
-      .select("id, name, industry, country, country_code, email, plan_tier, subscription_status, is_demo, is_admin_workspace, created_at")
+      .select(
+        "id, name, industry, country, country_code, email, plan_tier, subscription_status, is_demo, is_admin_workspace, created_at",
+      )
       .order("created_at", { ascending: false });
     if (error) throw error;
 
@@ -72,12 +102,17 @@ export const listAllTenants = createServerFn({ method: "GET" })
       supabaseAdmin.from("users").select("tenant_id").in("tenant_id", tenantIds),
       supabaseAdmin.from("customers").select("tenant_id").in("tenant_id", tenantIds),
       supabaseAdmin.from("bookings").select("tenant_id").in("tenant_id", tenantIds),
-      supabaseAdmin.from("payments").select("tenant_id, amount_cents, currency, status").in("tenant_id", tenantIds),
+      supabaseAdmin
+        .from("payments")
+        .select("tenant_id, amount_cents, currency, status")
+        .in("tenant_id", tenantIds),
     ]);
 
     const tally = (rows: any[] | null) => {
       const m: Record<string, number> = {};
-      (rows ?? []).forEach((r) => { m[r.tenant_id] = (m[r.tenant_id] ?? 0) + 1; });
+      (rows ?? []).forEach((r) => {
+        m[r.tenant_id] = (m[r.tenant_id] ?? 0) + 1;
+      });
       return m;
     };
     const userCounts = tally(usersAgg.data);
@@ -87,7 +122,8 @@ export const listAllTenants = createServerFn({ method: "GET" })
     (paymentsAgg.data ?? []).forEach((p: any) => {
       if (p.status !== "CONFIRMED") return;
       revenueByTenant[p.tenant_id] ??= {};
-      revenueByTenant[p.tenant_id][p.currency] = (revenueByTenant[p.tenant_id][p.currency] ?? 0) + (p.amount_cents ?? 0);
+      revenueByTenant[p.tenant_id][p.currency] =
+        (revenueByTenant[p.tenant_id][p.currency] ?? 0) + (p.amount_cents ?? 0);
     });
 
     return {
@@ -108,7 +144,7 @@ export const updateTenantStatus = createServerFn({ method: "POST" })
       tenantId: z.string().uuid(),
       plan_tier: z.enum(["starter", "growth", "pro", "enterprise"]).optional(),
       subscription_status: z.enum(["active", "suspended", "cancelled", "trial"]).optional(),
-    })
+    }),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
@@ -117,7 +153,10 @@ export const updateTenantStatus = createServerFn({ method: "POST" })
     if (data.plan_tier) patch.plan_tier = data.plan_tier;
     if (data.subscription_status) patch.subscription_status = data.subscription_status;
     if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await supabaseAdmin.from("tenants").update(patch as any).eq("id", data.tenantId);
+    const { error } = await supabaseAdmin
+      .from("tenants")
+      .update(patch as any)
+      .eq("id", data.tenantId);
     if (error) throw error;
     return { ok: true };
   });

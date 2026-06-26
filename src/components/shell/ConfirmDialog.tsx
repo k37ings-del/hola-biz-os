@@ -34,7 +34,9 @@ export function ConfirmDialog({
   onConfirm: (reason?: string) => void | Promise<void>;
 }) {
   const [reason, setReason] = useState("");
-  useEffect(() => { if (open) setReason(""); }, [open]);
+  useEffect(() => {
+    if (open) setReason("");
+  }, [open]);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -53,7 +55,9 @@ export function ConfirmDialog({
           <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm(reasonLabel ? reason : undefined)}
-            className={destructive ? "bg-danger text-danger-foreground hover:bg-danger/90" : undefined}
+            className={
+              destructive ? "bg-danger text-danger-foreground hover:bg-danger/90" : undefined
+            }
           >
             {confirmLabel}
           </AlertDialogAction>

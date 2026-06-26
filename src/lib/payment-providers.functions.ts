@@ -3,7 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function tenantOf(supabase: any, userId: string) {
-  const { data } = await supabase.from("users").select("tenant_id, role").eq("supabase_auth_id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("users")
+    .select("tenant_id, role")
+    .eq("supabase_auth_id", userId)
+    .maybeSingle();
   return data as { tenant_id: string | null; role: string | null } | null;
 }
 
@@ -30,7 +34,11 @@ export const getPaymentProviders = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) return {};
-    const { data } = await context.supabase.from("tenants").select("payment_providers").eq("id", u.tenant_id).maybeSingle();
+    const { data } = await context.supabase
+      .from("tenants")
+      .select("payment_providers")
+      .eq("id", u.tenant_id)
+      .maybeSingle();
     return (data?.payment_providers ?? {}) as Record<string, any>;
   });
 
@@ -41,7 +49,10 @@ export const savePaymentProviders = createServerFn({ method: "POST" })
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) throw new Error("No tenant");
     if (!["owner", "admin"].includes(u.role ?? "")) throw new Error("Forbidden");
-    const { error } = await context.supabase.from("tenants").update({ payment_providers: data as any }).eq("id", u.tenant_id);
+    const { error } = await context.supabase
+      .from("tenants")
+      .update({ payment_providers: data as any })
+      .eq("id", u.tenant_id);
     if (error) throw error;
     return { ok: true };
   });
