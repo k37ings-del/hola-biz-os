@@ -183,6 +183,7 @@ export type Database = {
           name: string | null
           tenant_id: string
           trigger_type: string | null
+          updated_at: string
         }
         Insert: {
           action_type?: string | null
@@ -193,6 +194,7 @@ export type Database = {
           name?: string | null
           tenant_id: string
           trigger_type?: string | null
+          updated_at?: string
         }
         Update: {
           action_type?: string | null
@@ -203,6 +205,7 @@ export type Database = {
           name?: string | null
           tenant_id?: string
           trigger_type?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
