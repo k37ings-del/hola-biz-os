@@ -257,6 +257,16 @@ function BookingsPage() {
         description="Bookings sync to the customer's WhatsApp."
         footer={
           <>
+            {form?.id && (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto"
+                onClick={() => confirmDelete(form.id!)}
+                disabled={deleteMut.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
             <Button onClick={() => save.mutate()} disabled={save.isPending}>
               {save.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
