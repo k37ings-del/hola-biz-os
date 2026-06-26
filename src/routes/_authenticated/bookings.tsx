@@ -130,6 +130,22 @@ function BookingsPage() {
     },
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => removeBooking({ data: { id } }),
+    onSuccess: () => {
+      setEditorOpen(false);
+      qc.invalidateQueries({ queryKey: ["bookings-list"] });
+      toast.success("Booking deleted");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
+  });
+
+  const confirmDelete = (id: string, ref?: string) => {
+    if (typeof window !== "undefined" && window.confirm(`Delete booking ${ref ?? ""}? This cannot be undone.`)) {
+      deleteMut.mutate(id);
+    }
+  };
+
   const stats = q.data?.stats ?? { upcoming: 0, today: 0, pending: 0, completed_week: 0 };
 
   // sync price/duration when service picked
