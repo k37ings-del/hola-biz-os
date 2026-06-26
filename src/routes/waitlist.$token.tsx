@@ -33,7 +33,7 @@ function WaitlistClaim() {
     queryKey: ["waitlist-offer", token],
     queryFn: () => fetchOffer({ data: { token } }),
   });
-  useTenantFavicon((data as any)?.tenant?.logo_url);
+  useTenantFavicon((data as any)?.tenant?.favicon_url || (data as any)?.tenant?.logo_url);
 
   const mut = useMutation({
     mutationFn: () => claim({ data: { token } }),

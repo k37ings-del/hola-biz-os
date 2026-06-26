@@ -68,7 +68,7 @@ export const listBookings = createServerFn({ method: "GET" })
 
 export const upsertBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
+  .validator((d) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -121,7 +121,7 @@ export const upsertBooking = createServerFn({ method: "POST" })
 
 export const setBookingStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
+  .validator((d) =>
     z
       .object({
         id: z.string().uuid(),
@@ -170,7 +170,7 @@ export const bookingFormOptions = createServerFn({ method: "GET" })
 
 export const deleteBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");

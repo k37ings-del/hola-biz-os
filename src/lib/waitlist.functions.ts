@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 export const joinWaitlist = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         tenant_id: z.string().uuid(),
@@ -38,7 +38,7 @@ export const joinWaitlist = createServerFn({ method: "POST" })
   });
 
 export const getWaitlistOffer = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ token: z.string().min(8) }).parse(d))
+  .validator((d: unknown) => z.object({ token: z.string().min(8) }).parse(d))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
@@ -50,7 +50,7 @@ export const getWaitlistOffer = createServerFn({ method: "GET" })
   });
 
 export const claimWaitlistSlot = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ token: z.string().min(8) }).parse(d))
+  .validator((d: unknown) => z.object({ token: z.string().min(8) }).parse(d))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {

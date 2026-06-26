@@ -139,7 +139,7 @@ export const listAllTenants = createServerFn({ method: "GET" })
 
 export const updateTenantStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     z.object({
       tenantId: z.string().uuid(),
       plan_tier: z.enum(["starter", "growth", "pro", "enterprise"]).optional(),

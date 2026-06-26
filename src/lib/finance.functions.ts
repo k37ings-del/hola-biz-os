@@ -76,7 +76,7 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
 
 export const createRefund = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         payment_id: z.string().uuid().optional().nullable(),

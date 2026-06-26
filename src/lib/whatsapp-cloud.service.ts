@@ -17,7 +17,7 @@ export type OnboardingStatus = {
 
 export type WhatsAppMessage = {
   to: string;
-  body: string;
+  body?: string;
   type?: "text" | "template";
   template?: {
     name: string;

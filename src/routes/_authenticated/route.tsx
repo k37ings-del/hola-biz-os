@@ -9,6 +9,7 @@ import {
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, useSignOut } from "@/lib/auth";
+import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 import {
   SidebarProvider,
   Sidebar,
@@ -72,7 +73,9 @@ function AuthenticatedLayout() {
   const signOut = useSignOut();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Authenticated but no profile row yet — bounce to /auth from an effect (never during render).
+  const faviconUrl = data?.tenant?.favicon_url || data?.tenant?.logo_url;
+  useTenantFavicon(faviconUrl);
+
   useEffect(() => {
     if (!isLoading && !data) navigate({ to: "/auth" });
   }, [isLoading, data, navigate]);

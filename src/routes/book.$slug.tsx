@@ -71,7 +71,7 @@ const STEPS: { key: Step; label: string }[] = [
 function PublicBookingPage() {
   const page = Route.useLoaderData() as any;
   const tenant = page.tenant;
-  useTenantFavicon(tenant?.logo_url);
+  useTenantFavicon(tenant?.favicon_url || tenant?.logo_url);
   const services: any[] = page.services ?? [];
   const staffAll: any[] = page.staff ?? [];
   const intakeForm: { id: string; label: string; type: "text" | "textarea"; required?: boolean }[] =

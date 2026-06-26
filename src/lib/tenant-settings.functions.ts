@@ -67,7 +67,7 @@ export const getTenantSettings = createServerFn({ method: "GET" })
 
 export const saveTenantBranding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => BrandingSchema.parse(d))
+  .validator((d: unknown) => BrandingSchema.parse(d))
   .handler(async ({ context, data }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) throw new Error("No tenant");
@@ -109,7 +109,7 @@ const UploadLogoSchema = z.object({
 
 export const uploadTenantLogo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => UploadLogoSchema.parse(d))
+  .validator((d: unknown) => UploadLogoSchema.parse(d))
   .handler(async ({ context, data }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) throw new Error("No tenant");

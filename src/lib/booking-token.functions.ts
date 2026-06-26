@@ -9,7 +9,7 @@ function publicClient() {
 }
 
 export const getBookingByToken = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({ token: z.string().min(8).max(128), kind: z.enum(["reschedule", "cancel"]) })
       .parse(d),
@@ -25,7 +25,7 @@ export const getBookingByToken = createServerFn({ method: "GET" })
   });
 
 export const cancelBookingByToken = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({ token: z.string().min(8).max(128), reason: z.string().max(500).optional() })
       .parse(d),
@@ -41,7 +41,7 @@ export const cancelBookingByToken = createServerFn({ method: "POST" })
   });
 
 export const rescheduleBookingByToken = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ token: z.string().min(8).max(128), new_starts_at: z.string() }).parse(d),
   )
   .handler(async ({ data }) => {

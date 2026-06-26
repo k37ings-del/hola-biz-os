@@ -270,10 +270,17 @@ async function sendWhatsApp(opts: {
     webhookVerifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "",
   });
 
-  return service.sendTextMessage({
+  const result = await service.sendTextMessage({
     to: opts.to ? `whatsapp:${opts.to.replace(/\s+/g, "")}` : "",
     body: opts.text,
   });
+
+  return {
+    channel: "whatsapp",
+    skipped: !result.success,
+    reason: result.error,
+    provider_id: result.messageId,
+  };
 }
 
 function escapeHtml(s: string | null | undefined) {

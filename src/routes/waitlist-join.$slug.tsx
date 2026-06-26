@@ -28,7 +28,7 @@ function WaitlistJoinPage() {
     queryKey: ["waitlist-page", slug],
     queryFn: () => fetchPage({ data: { slug } }),
   });
-  useTenantFavicon((page as any)?.tenant?.logo_url);
+  useTenantFavicon((page as any)?.tenant?.favicon_url || (page as any)?.tenant?.logo_url);
 
   const [serviceId, setServiceId] = useState(search.get("service") ?? "");
   const [staffId] = useState(search.get("staff"));

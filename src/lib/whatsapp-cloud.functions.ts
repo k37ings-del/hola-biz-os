@@ -7,6 +7,15 @@ import {
   type WhatsAppMessage,
 } from "@/lib/whatsapp-cloud.service";
 
+async function tenantOf(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("users")
+    .select("tenant_id")
+    .eq("supabase_auth_id", userId)
+    .maybeSingle();
+  return data?.tenant_id as string | null;
+}
+
 export const WHATSAPP_TEMPLATES = [
   "booking_confirmed",
   "reminder_24h",
@@ -17,7 +26,7 @@ export const WHATSAPP_TEMPLATES = [
 
 export const initiateOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         phone_number: z.string().min(10).max(20),
@@ -25,6 +34,8 @@ export const initiateOnboarding = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
@@ -41,7 +52,7 @@ export const initiateOnboarding = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const result = await service.initiateOnboarding(
-      context.tenantId,
+      tenantId,
       data.phone_number,
       supabaseAdmin,
     );
@@ -51,7 +62,7 @@ export const initiateOnboarding = createServerFn({ method: "POST" })
 
 export const sendWhatsAppMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         to: z.string().min(10).max(20),
@@ -62,11 +73,13 @@ export const sendWhatsAppMessage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: tenant } = await context.supabase
       .from("tenants")
       .select("wa_phone_number, wa_number_id")
-      .eq("id", context.tenantId)
+      .eq("id", tenantId)
       .single();
 
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -83,7 +96,7 @@ export const sendWhatsAppMessage = createServerFn({ method: "POST" })
 
     if (data.template) {
       return service.sendUpdate(
-        context.tenantId,
+        tenantId,
         formatPhoneForWhatsApp(data.to) || data.to,
         data.template,
         data.variables || {},
@@ -99,7 +112,7 @@ export const sendWhatsAppMessage = createServerFn({ method: "POST" })
 
 export const sendBulkNotifications = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         messages: z
@@ -114,11 +127,13 @@ export const sendBulkNotifications = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: tenant } = await context.supabase
       .from("tenants")
       .select("wa_phone_number, wa_number_id")
-      .eq("id", context.tenantId)
+      .eq("id", tenantId)
       .single();
 
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -133,14 +148,14 @@ export const sendBulkNotifications = createServerFn({ method: "POST" })
       webhookVerifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "",
     });
 
-    const results = await service.notifyClients(context.tenantId, data.messages, supabaseAdmin);
+    const results = await service.notifyClients(tenantId, data.messages, supabaseAdmin);
 
     return { success: true, results };
   });
 
 export const registerWebhook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         webhook_url: z.string().url(),

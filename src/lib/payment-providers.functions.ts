@@ -44,7 +44,7 @@ export const getPaymentProviders = createServerFn({ method: "GET" })
 
 export const savePaymentProviders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => Schema.parse(d))
+  .validator((d: unknown) => Schema.parse(d))
   .handler(async ({ context, data }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) throw new Error("No tenant");

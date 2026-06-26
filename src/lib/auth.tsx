@@ -28,6 +28,9 @@ export type Tenant = {
   business_hours: Record<string, { active: boolean; open: string; close: string }>;
   is_demo: boolean;
   default_currency: string;
+  brand_color: string | null;
+  logo_url: string | null;
+  favicon_url: string | null;
 };
 
 export function useSession(): { session: Session | null; loading: boolean } {

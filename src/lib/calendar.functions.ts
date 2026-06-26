@@ -15,7 +15,7 @@ export const PROVIDERS = ["google_calendar", "outlook", "zoom", "google_meet"] a
 
 export const listCalendarConnections = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ staff_id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ staff_id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) return [];
@@ -30,7 +30,7 @@ export const listCalendarConnections = createServerFn({ method: "GET" })
 
 export const upsertCalendarConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         staff_id: z.string().uuid(),
@@ -61,7 +61,7 @@ export const upsertCalendarConnection = createServerFn({ method: "POST" })
 
 export const deleteCalendarConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");

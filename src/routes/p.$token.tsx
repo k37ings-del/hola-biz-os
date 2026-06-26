@@ -45,7 +45,7 @@ function PortalPage() {
     queryKey: ["customer-portal", token],
     queryFn: () => fetchFn({ data: { token } }),
   });
-  useTenantFavicon((data as any)?.tenant?.logo_url);
+  useTenantFavicon((data as any)?.tenant?.favicon_url || (data as any)?.tenant?.logo_url);
 
   if (isLoading) {
     return (
