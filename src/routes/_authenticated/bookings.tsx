@@ -224,12 +224,24 @@ function BookingsPage() {
                   <TableCell><StatusBadge status={b.status} /></TableCell>
                   <TableCell className="text-right">{formatCurrency(b.amount_cents, b.currency)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <Select value={b.status} onValueChange={(v) => setStatusMut.mutate({ id: b.id, status: v as any })}>
-                      <SelectTrigger className="h-8 w-[150px] ml-auto"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Select value={b.status} onValueChange={(v) => setStatusMut.mutate({ id: b.id, status: v as any })}>
+                        <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        title="Delete booking"
+                        onClick={() => confirmDelete(b.id, b.ref_code)}
+                        disabled={deleteMut.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
