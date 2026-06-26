@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Calendar, Plus, Loader2, Save, Link as LinkIcon } from "lucide-react";
+import { Calendar, Plus, Loader2, Save, Link as LinkIcon, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
