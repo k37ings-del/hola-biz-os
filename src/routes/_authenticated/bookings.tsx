@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/shell/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
-import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
+import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions, deleteBooking } from "@/lib/bookings.functions";
 
 export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({ meta: [{ title: "Bookings · Holaweb Business OS" }] }),
