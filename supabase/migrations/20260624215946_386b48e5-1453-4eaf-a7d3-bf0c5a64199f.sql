@@ -1,4 +1,7 @@
 
+-- Ensure pgcrypto extension is available for gen_random_bytes
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- =========================================================
 -- Waiting list
 -- =========================================================
@@ -144,10 +147,10 @@ CREATE OR REPLACE FUNCTION public.bookings_set_tokens()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
   IF NEW.reschedule_token IS NULL THEN
-    NEW.reschedule_token := encode(gen_random_bytes(24), 'hex');
+    NEW.reschedule_token := upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32));
   END IF;
   IF NEW.cancel_token IS NULL THEN
-    NEW.cancel_token := encode(gen_random_bytes(24), 'hex');
+    NEW.cancel_token := upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32));
   END IF;
   RETURN NEW;
 END $$;
@@ -157,10 +160,10 @@ CREATE TRIGGER bookings_tokens_trg BEFORE INSERT ON public.bookings
   FOR EACH ROW EXECUTE FUNCTION public.bookings_set_tokens();
 
 UPDATE public.bookings
-  SET reschedule_token = encode(gen_random_bytes(24), 'hex')
+  SET reschedule_token = upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32))
   WHERE reschedule_token IS NULL;
 UPDATE public.bookings
-  SET cancel_token = encode(gen_random_bytes(24), 'hex')
+  SET cancel_token = upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32))
   WHERE cancel_token IS NULL;
 
 -- =========================================================
