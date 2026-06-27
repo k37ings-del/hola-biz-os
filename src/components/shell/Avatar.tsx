@@ -32,14 +32,7 @@ export function InitialsAvatar({
   const sizeCls =
     size === "sm" ? "h-7 w-7 text-[10px]" : size === "lg" ? "h-14 w-14 text-lg" : "h-9 w-9 text-xs";
   return (
-    <div
-      className={cn(
-        "rounded-full flex items-center justify-center font-medium shrink-0",
-        sizeCls,
-        cls,
-        className,
-      )}
-    >
+    <div className={cn("rounded-full flex items-center justify-center font-medium shrink-0", sizeCls, cls, className)}>
       {initials}
     </div>
   );

@@ -1,7 +1,4 @@
 
--- Ensure pgcrypto extension is available for gen_random_bytes
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- =========================================================
 -- Waiting list: claim token + auto-fill on cancellation
 -- =========================================================
@@ -110,7 +107,7 @@ BEGIN
       ORDER BY created_at ASC
       LIMIT 1;
     IF w_id IS NOT NULL THEN
-      new_token := upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32);
+      new_token := encode(gen_random_bytes(24), 'hex');
       UPDATE public.waiting_list
         SET status = 'notified',
             offered_starts_at = NEW.starts_at,

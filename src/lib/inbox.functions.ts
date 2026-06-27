@@ -3,11 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function tenantOf(supabase: any, userId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("users")
-    .select("tenant_id")
-    .eq("supabase_auth_id", userId)
-    .maybeSingle();
+  const { data } = await supabase.from("users").select("tenant_id").eq("supabase_auth_id", userId).maybeSingle();
   return data?.tenant_id ?? null;
 }
 
@@ -19,9 +15,7 @@ export const listConversations = createServerFn({ method: "GET" })
 
     const { data, error } = await context.supabase
       .from("conversations")
-      .select(
-        "id, status, last_message, last_message_at, unread_count, assigned_staff_id, customer:customers(id, display_name, wa_phone, email)",
-      )
+      .select("id, status, last_message, last_message_at, unread_count, assigned_staff_id, customer:customers(id, display_name, wa_phone, email)")
       .eq("tenant_id", tenantId)
       .order("last_message_at", { ascending: false, nullsFirst: false })
       .limit(200);
@@ -48,9 +42,7 @@ export const getConversation = createServerFn({ method: "GET" })
     const [{ data: convo, error: cErr }, { data: messages, error: mErr }] = await Promise.all([
       context.supabase
         .from("conversations")
-        .select(
-          "id, status, assigned_staff_id, unread_count, customer:customers(id, display_name, wa_phone, email)",
-        )
+        .select("id, status, assigned_staff_id, unread_count, customer:customers(id, display_name, wa_phone, email)")
         .eq("id", data.id)
         .eq("tenant_id", tenantId)
         .maybeSingle(),
@@ -66,22 +58,14 @@ export const getConversation = createServerFn({ method: "GET" })
     if (!convo) throw new Error("Conversation not found");
 
     // mark as read
-    await context.supabase
-      .from("conversations")
-      .update({ unread_count: 0 })
-      .eq("id", data.id)
-      .eq("tenant_id", tenantId);
+    await context.supabase.from("conversations").update({ unread_count: 0 }).eq("id", data.id).eq("tenant_id", tenantId);
 
     return { conversation: convo, messages: messages ?? [] };
   });
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({ conversation_id: z.string().uuid(), content: z.string().trim().min(1).max(4000) })
-      .parse(d),
-  )
+  .inputValidator((d) => z.object({ conversation_id: z.string().uuid(), content: z.string().trim().min(1).max(4000) }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
@@ -106,11 +90,7 @@ export const sendMessage = createServerFn({ method: "POST" })
 
     await context.supabase
       .from("conversations")
-      .update({
-        last_message: data.content,
-        last_message_at: new Date().toISOString(),
-        status: "open",
-      })
+      .update({ last_message: data.content, last_message_at: new Date().toISOString(), status: "open" })
       .eq("id", data.conversation_id);
 
     return { ok: true };
@@ -118,17 +98,11 @@ export const sendMessage = createServerFn({ method: "POST" })
 
 export const setConversationStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), status: z.enum(["open", "closed", "archived"]) }).parse(d),
-  )
+  .inputValidator((d) => z.object({ id: z.string().uuid(), status: z.enum(["open", "closed", "archived"]) }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
-    const { error } = await context.supabase
-      .from("conversations")
-      .update({ status: data.status })
-      .eq("id", data.id)
-      .eq("tenant_id", tenantId);
+    const { error } = await context.supabase.from("conversations").update({ status: data.status }).eq("id", data.id).eq("tenant_id", tenantId);
     if (error) throw error;
     return { ok: true };
   });

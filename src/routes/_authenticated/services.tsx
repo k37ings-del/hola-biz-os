@@ -8,14 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard, StatCardGrid } from "@/components/shell/StatCard";
@@ -54,24 +47,11 @@ function ServicesPage() {
   const q = useQuery({ queryKey: ["services-list"], queryFn: () => fetchList() });
 
   const openCreate = () => {
-    setForm({
-      name: "",
-      duration_minutes: 60,
-      price_cents: 0,
-      currency: tenantCurrency,
-      active: true,
-    });
+    setForm({ name: "", duration_minutes: 60, price_cents: 0, currency: tenantCurrency, active: true });
     setEditorOpen(true);
   };
   const openEdit = (s: any) => {
-    setForm({
-      id: s.id,
-      name: s.name,
-      duration_minutes: s.duration_minutes,
-      price_cents: s.price_cents,
-      currency: s.currency,
-      active: s.active,
-    });
+    setForm({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents, currency: s.currency, active: s.active });
     setEditorOpen(true);
   };
 
@@ -106,12 +86,7 @@ function ServicesPage() {
       <PageHeader
         title="Services"
         description="The catalogue customers can book through WhatsApp."
-        actions={
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-1" />
-            New service
-          </Button>
-        }
+        actions={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New service</Button>}
       />
 
       <StatCardGrid>
@@ -120,16 +95,7 @@ function ServicesPage() {
         <StatCard label="Inactive" value={services.length - activeCount} icon={Briefcase} />
         <StatCard
           label="Avg price"
-          value={
-            services.length
-              ? formatCurrency(
-                  Math.round(
-                    services.reduce((s: number, x: any) => s + x.price_cents, 0) / services.length,
-                  ),
-                  services[0]?.currency ?? tenantCurrency,
-                )
-              : "—"
-          }
+          value={services.length ? formatCurrency(Math.round(services.reduce((s: number, x: any) => s + x.price_cents, 0) / services.length), services[0]?.currency ?? tenantCurrency) : "—"}
           icon={Briefcase}
         />
       </StatCardGrid>
@@ -142,12 +108,7 @@ function ServicesPage() {
             icon={Briefcase}
             title="No services yet"
             description="Add your first service so customers can book through WhatsApp."
-            action={
-              <Button onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-1" />
-                New service
-              </Button>
-            }
+            action={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />New service</Button>}
           />
         ) : (
           <Table>
@@ -162,21 +123,12 @@ function ServicesPage() {
             </TableHeader>
             <TableBody>
               {services.map((s: any) => (
-                <TableRow
-                  key={s.id}
-                  className="cursor-pointer hover:bg-accent/30"
-                  onClick={() => openEdit(s)}
-                >
+                <TableRow key={s.id} className="cursor-pointer hover:bg-accent/30" onClick={() => openEdit(s)}>
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell>{s.duration_minutes} min</TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(s.price_cents, s.currency)}
-                  </TableCell>
+                  <TableCell className="text-right">{formatCurrency(s.price_cents, s.currency)}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={s.active ? "default" : "secondary"}
-                      className="text-[10px] uppercase"
-                    >
+                    <Badge variant={s.active ? "default" : "secondary"} className="text-[10px] uppercase">
                       {s.active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
@@ -198,15 +150,9 @@ function ServicesPage() {
         title={form?.id ? "Edit service" : "New service"}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEditorOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
             <Button onClick={() => save.mutate()} disabled={save.isPending || !form?.name.trim()}>
-              {save.isPending ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-1" />
-              )}
+              {save.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
               Save
             </Button>
           </>
@@ -216,53 +162,28 @@ function ServicesPage() {
           <div className="space-y-4">
             <div>
               <Label>Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Box Braids"
-              />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Box Braids" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Duration (min)</Label>
-                <Input
-                  type="number"
-                  min={5}
-                  value={form.duration_minutes}
-                  onChange={(e) =>
-                    setForm({ ...form, duration_minutes: Number(e.target.value) || 0 })
-                  }
-                />
+                <Input type="number" min={5} value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) || 0 })} />
               </div>
               <div>
                 <Label>Currency</Label>
-                <Input
-                  value={form.currency}
-                  onChange={(e) => setForm({ ...form, currency: e.target.value.toUpperCase() })}
-                />
+                <Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value.toUpperCase() })} />
               </div>
             </div>
             <div>
               <Label>Price</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={(form.price_cents / 100).toString()}
-                onChange={(e) =>
-                  setForm({ ...form, price_cents: Math.round(Number(e.target.value) * 100) })
-                }
-              />
+              <Input type="number" min={0} step="0.01" value={(form.price_cents / 100).toString()} onChange={(e) => setForm({ ...form, price_cents: Math.round(Number(e.target.value) * 100) })} />
             </div>
             <div className="flex items-center justify-between border rounded-md px-3 py-2">
               <div>
                 <p className="text-sm font-medium">Active</p>
                 <p className="text-xs text-muted-foreground">Customers can book this service</p>
               </div>
-              <Switch
-                checked={form.active}
-                onCheckedChange={(v) => setForm({ ...form, active: v })}
-              />
+              <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
             </div>
           </div>
         )}
@@ -275,9 +196,7 @@ function ServicesPage() {
         description="This cannot be undone. Existing bookings will keep their reference."
         confirmLabel="Delete"
         destructive
-        onConfirm={() => {
-          if (confirmDelete) remove.mutate(confirmDelete);
-        }}
+        onConfirm={() => { if (confirmDelete) remove.mutate(confirmDelete); }}
       />
     </div>
   );

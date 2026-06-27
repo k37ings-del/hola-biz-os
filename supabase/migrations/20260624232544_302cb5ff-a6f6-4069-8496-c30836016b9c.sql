@@ -1,13 +1,11 @@
--- Ensure pgcrypto extension is available for gen_random_bytes
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Customer portal token on bookings
 ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS portal_token TEXT UNIQUE;
-UPDATE public.bookings SET portal_token = upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32)) WHERE portal_token IS NULL;
+UPDATE public.bookings SET portal_token = encode(gen_random_bytes(18), 'hex') WHERE portal_token IS NULL;
 
 -- ICS feed token on staff
 ALTER TABLE public.staff ADD COLUMN IF NOT EXISTS ics_token TEXT UNIQUE;
-UPDATE public.staff SET ics_token = upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32)) WHERE ics_token IS NULL;
+UPDATE public.staff SET ics_token = encode(gen_random_bytes(18), 'hex') WHERE ics_token IS NULL;
 
 -- Payment provider config on tenants
 ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS payment_providers JSONB NOT NULL DEFAULT '{}'::jsonb;
@@ -16,7 +14,7 @@ ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS payment_providers JSONB NOT 
 CREATE OR REPLACE FUNCTION public.bookings_set_portal_token()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
-  IF NEW.portal_token IS NULL THEN NEW.portal_token := upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32)); END IF;
+  IF NEW.portal_token IS NULL THEN NEW.portal_token := encode(gen_random_bytes(18), 'hex'); END IF;
   RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS bookings_portal_token_trg ON public.bookings;
@@ -27,7 +25,7 @@ REVOKE EXECUTE ON FUNCTION public.bookings_set_portal_token() FROM PUBLIC, anon;
 CREATE OR REPLACE FUNCTION public.staff_set_ics_token()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
-  IF NEW.ics_token IS NULL THEN NEW.ics_token := upper(substring(md5(random()::text||clock_timestamp()::text) from 1 for 32)); END IF;
+  IF NEW.ics_token IS NULL THEN NEW.ics_token := encode(gen_random_bytes(18), 'hex'); END IF;
   RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS staff_ics_token_trg ON public.staff;

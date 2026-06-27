@@ -55,10 +55,7 @@ function SchedulePage() {
   }, [staff, selectedId]);
 
   const selectedStaff = staff.find((s) => s.id === selectedId);
-  const existing = useMemo(
-    () => schedules.find((s) => s.staff_id === selectedId),
-    [schedules, selectedId],
-  );
+  const existing = useMemo(() => schedules.find((s) => s.staff_id === selectedId), [schedules, selectedId]);
 
   const [weekly, setWeekly] = useState<Weekly>(defaultWeekly());
   const [timeOff, setTimeOff] = useState<TimeOff[]>([]);
@@ -73,9 +70,7 @@ function SchedulePage() {
       setTimeOff(Array.isArray(existing.time_off) ? existing.time_off : []);
       setBufBefore(existing.buffer_before_minutes ?? 0);
       setBufAfter(existing.buffer_after_minutes ?? 0);
-      setMaxDaily(
-        existing.max_daily_appointments != null ? String(existing.max_daily_appointments) : "",
-      );
+      setMaxDaily(existing.max_daily_appointments != null ? String(existing.max_daily_appointments) : "");
     } else {
       setWeekly(defaultWeekly());
       setTimeOff([]);
@@ -86,17 +81,16 @@ function SchedulePage() {
   }, [existing?.id, selectedId]);
 
   const saveMut = useMutation({
-    mutationFn: () =>
-      saveFn({
-        data: {
-          staff_id: selectedId!,
-          weekly,
-          time_off: timeOff,
-          buffer_before_minutes: bufBefore,
-          buffer_after_minutes: bufAfter,
-          max_daily_appointments: maxDaily.trim() ? Number(maxDaily) : null,
-        },
-      }),
+    mutationFn: () => saveFn({
+      data: {
+        staff_id: selectedId!,
+        weekly,
+        time_off: timeOff,
+        buffer_before_minutes: bufBefore,
+        buffer_after_minutes: bufAfter,
+        max_daily_appointments: maxDaily.trim() ? Number(maxDaily) : null,
+      },
+    }),
     onSuccess: () => {
       toast.success("Schedule saved");
       qc.invalidateQueries({ queryKey: ["schedules"] });
@@ -109,11 +103,7 @@ function SchedulePage() {
     : "";
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
   return (
@@ -126,15 +116,9 @@ function SchedulePage() {
       <div className="grid lg:grid-cols-[280px_1fr] gap-4">
         {/* Staff list */}
         <Card className="lg:sticky lg:top-4 lg:self-start">
-          <CardHeader>
-            <CardTitle className="text-sm">Team</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Team</CardTitle></CardHeader>
           <CardContent className="p-2 space-y-1 max-h-[60vh] overflow-y-auto">
-            {staff.length === 0 && (
-              <p className="text-sm text-muted-foreground p-3">
-                No active staff. Add them in the Staff page.
-              </p>
-            )}
+            {staff.length === 0 && <p className="text-sm text-muted-foreground p-3">No active staff. Add them in the Staff page.</p>}
             {staff.map((s) => (
               <button
                 key={s.id}
@@ -157,9 +141,7 @@ function SchedulePage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <CalendarClock className="h-4 w-4" /> Weekly hours
-                  </CardTitle>
+                  <CardTitle className="text-sm flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Weekly hours</CardTitle>
                   <Button size="sm" onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
                     {saveMut.isPending ? "Saving…" : "Save schedule"}
                   </Button>
@@ -171,17 +153,13 @@ function SchedulePage() {
                     <div className="w-28 text-sm font-medium">{d.l}</div>
                     <Switch
                       checked={weekly[d.k].active}
-                      onCheckedChange={(v) =>
-                        setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], active: v } })
-                      }
+                      onCheckedChange={(v) => setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], active: v } })}
                     />
                     <Input
                       type="time"
                       value={weekly[d.k].open}
                       disabled={!weekly[d.k].active}
-                      onChange={(e) =>
-                        setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], open: e.target.value } })
-                      }
+                      onChange={(e) => setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], open: e.target.value } })}
                       className="w-32"
                     />
                     <span className="text-xs text-muted-foreground">to</span>
@@ -189,16 +167,10 @@ function SchedulePage() {
                       type="time"
                       value={weekly[d.k].close}
                       disabled={!weekly[d.k].active}
-                      onChange={(e) =>
-                        setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], close: e.target.value } })
-                      }
+                      onChange={(e) => setWeekly({ ...weekly, [d.k]: { ...weekly[d.k], close: e.target.value } })}
                       className="w-32"
                     />
-                    {!weekly[d.k].active && (
-                      <Badge variant="outline" className="text-[10px] ml-2">
-                        Off
-                      </Badge>
-                    )}
+                    {!weekly[d.k].active && <Badge variant="outline" className="text-[10px] ml-2">Off</Badge>}
                   </div>
                 ))}
               </CardContent>
@@ -206,37 +178,16 @@ function SchedulePage() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Buffers & limits</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-sm">Buffers & limits</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   <Field label="Buffer before (min)">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={bufBefore}
-                      onChange={(e) => setBufBefore(Number(e.target.value))}
-                    />
+                    <Input type="number" min={0} max={120} value={bufBefore} onChange={(e) => setBufBefore(Number(e.target.value))} />
                   </Field>
                   <Field label="Buffer after (min)">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={bufAfter}
-                      onChange={(e) => setBufAfter(Number(e.target.value))}
-                    />
+                    <Input type="number" min={0} max={120} value={bufAfter} onChange={(e) => setBufAfter(Number(e.target.value))} />
                   </Field>
                   <Field label="Max daily appointments (blank = no limit)">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={maxDaily}
-                      onChange={(e) => setMaxDaily(e.target.value)}
-                      placeholder="No limit"
-                    />
+                    <Input type="number" min={0} max={100} value={maxDaily} onChange={(e) => setMaxDaily(e.target.value)} placeholder="No limit" />
                   </Field>
                 </CardContent>
               </Card>
@@ -245,53 +196,25 @@ function SchedulePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm">Time off</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setTimeOff([...timeOff, { from: "", to: "", reason: "" }])}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => setTimeOff([...timeOff, { from: "", to: "", reason: "" }])}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> Add
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {timeOff.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No time off scheduled.</p>
-                  )}
+                  {timeOff.length === 0 && <p className="text-sm text-muted-foreground">No time off scheduled.</p>}
                   {timeOff.map((t, i) => (
                     <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
-                      <Input
-                        type="date"
-                        value={t.from}
-                        onChange={(e) => {
-                          const next = [...timeOff];
-                          next[i] = { ...t, from: e.target.value };
-                          setTimeOff(next);
-                        }}
-                      />
-                      <Input
-                        type="date"
-                        value={t.to}
-                        onChange={(e) => {
-                          const next = [...timeOff];
-                          next[i] = { ...t, to: e.target.value };
-                          setTimeOff(next);
-                        }}
-                      />
-                      <Input
-                        placeholder="Reason"
-                        value={t.reason ?? ""}
-                        onChange={(e) => {
-                          const next = [...timeOff];
-                          next[i] = { ...t, reason: e.target.value };
-                          setTimeOff(next);
-                        }}
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setTimeOff(timeOff.filter((_, j) => j !== i))}
-                      >
+                      <Input type="date" value={t.from} onChange={(e) => {
+                        const next = [...timeOff]; next[i] = { ...t, from: e.target.value }; setTimeOff(next);
+                      }} />
+                      <Input type="date" value={t.to} onChange={(e) => {
+                        const next = [...timeOff]; next[i] = { ...t, to: e.target.value }; setTimeOff(next);
+                      }} />
+                      <Input placeholder="Reason" value={t.reason ?? ""} onChange={(e) => {
+                        const next = [...timeOff]; next[i] = { ...t, reason: e.target.value }; setTimeOff(next);
+                      }} />
+                      <Button size="icon" variant="ghost" onClick={() => setTimeOff(timeOff.filter((_, j) => j !== i))}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -306,20 +229,14 @@ function SchedulePage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  {selectedStaff.name} can subscribe to this private URL from Google Calendar,
-                  Outlook, or Apple Calendar. Updates every ~15 minutes. One-way sync (HolaWeb →
-                  calendar).
+                  {selectedStaff.name} can subscribe to this private URL from Google Calendar, Outlook, or Apple Calendar. Updates every ~15 minutes. One-way sync (HolaWeb → calendar).
                 </p>
                 <div className="flex gap-2">
                   <Input value={icsUrl} readOnly className="font-mono text-xs" />
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(icsUrl);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
-                    }}
-                  >
+                  <Button variant="outline" onClick={async () => {
+                    await navigator.clipboard.writeText(icsUrl);
+                    setCopied(true); setTimeout(() => setCopied(false), 1500);
+                  }}>
                     {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                 </div>

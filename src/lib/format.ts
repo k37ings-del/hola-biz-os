@@ -13,18 +13,7 @@ const SYMBOLS: Record<string, string> = {
   GBP: "£",
 };
 
-export const SUPPORTED_CURRENCIES = [
-  "NGN",
-  "GHS",
-  "ZAR",
-  "KES",
-  "UGX",
-  "TZS",
-  "RWF",
-  "USD",
-  "EUR",
-  "GBP",
-] as const;
+export const SUPPORTED_CURRENCIES = ["NGN", "GHS", "ZAR", "KES", "UGX", "TZS", "RWF", "USD", "EUR", "GBP"] as const;
 
 export function formatCurrency(amountCents: number | null | undefined, currency: string): string {
   const amount = (amountCents ?? 0) / 100;

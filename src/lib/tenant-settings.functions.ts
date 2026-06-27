@@ -23,11 +23,7 @@ const BusinessHoursDay = z.object({
 
 const BrandingSchema = z.object({
   name: z.string().min(2).max(120),
-  slug: z
-    .string()
-    .min(2)
-    .max(80)
-    .regex(/^[a-z0-9-]+$/, "lowercase letters, numbers, dashes only"),
+  slug: z.string().min(2).max(80).regex(/^[a-z0-9-]+$/, "lowercase letters, numbers, dashes only"),
   brand_color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "must be a hex color like #C5283D"),
   logo_url: z.string().url().nullable().or(z.literal("")).optional(),
   email: z.string().email().nullable().or(z.literal("")).optional(),
@@ -37,13 +33,8 @@ const BrandingSchema = z.object({
   buffer_minutes: z.number().int().min(0).max(240),
   business_hours: z
     .object({
-      mon: BusinessHoursDay,
-      tue: BusinessHoursDay,
-      wed: BusinessHoursDay,
-      thu: BusinessHoursDay,
-      fri: BusinessHoursDay,
-      sat: BusinessHoursDay,
-      sun: BusinessHoursDay,
+      mon: BusinessHoursDay, tue: BusinessHoursDay, wed: BusinessHoursDay,
+      thu: BusinessHoursDay, fri: BusinessHoursDay, sat: BusinessHoursDay, sun: BusinessHoursDay,
     })
     .partial()
     .optional(),
@@ -54,28 +45,15 @@ export const getTenantSettings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) return null;
-    const baseSelect =
-      "id, name, slug, brand_color, logo_url, email, whatsapp_number, timezone, default_currency, buffer_minutes, business_hours, country, country_code, industry, plan_tier, subscription_status";
     const { data, error } = await context.supabase
       .from("tenants")
-      .select(`${baseSelect}, favicon_url`)
+      .select(
+        "id, name, slug, brand_color, logo_url, email, whatsapp_number, timezone, default_currency, buffer_minutes, business_hours, country, country_code, industry, plan_tier, subscription_status",
+      )
       .eq("id", u.tenant_id)
       .maybeSingle();
-    if (!error) return { ...((data as any) ?? {}), role: u.role };
-
-    const missingFaviconColumn =
-      error.code === "42703" ||
-      error.code === "PGRST204" ||
-      String(error.message ?? "").includes("favicon_url");
-    if (!missingFaviconColumn) throw error;
-
-    const { data: fallbackData, error: fallbackError } = await context.supabase
-      .from("tenants")
-      .select(baseSelect)
-      .eq("id", u.tenant_id)
-      .maybeSingle();
-    if (fallbackError) throw fallbackError;
-    return { ...((fallbackData as any) ?? {}), favicon_url: null, role: u.role };
+    if (error) throw error;
+    return { ...data, role: u.role };
   });
 
 export const saveTenantBranding = createServerFn({ method: "POST" })
@@ -111,66 +89,4 @@ export const saveTenantBranding = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("tenants").update(patch).eq("id", u.tenant_id);
     if (error) throw error;
     return { ok: true };
-  });
-
-const UploadLogoSchema = z.object({
-  file: z
-    .instanceof(File)
-    .refine((f) => f.size <= 2097152, "Max 2MB")
-    .optional(),
-});
-
-export const uploadTenantLogo = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => UploadLogoSchema.parse(d))
-  .handler(async ({ context, data }) => {
-    const u = await tenantOf(context.supabase, context.userId);
-    if (!u?.tenant_id) throw new Error("No tenant");
-    assertAdmin(u.role);
-
-    if (!data.file) return { ok: true };
-
-    const file = data.file;
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const filename = `logo-${u.tenant_id}-${Date.now()}.${ext}`;
-    const filepath = `tenants/${filename}`;
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const { error: uploadError } = await context.supabase.storage
-      .from("tenant-logos")
-      .upload(filepath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data: urlData } = context.supabase.storage.from("tenant-logos").getPublicUrl(filepath);
-
-    // Generate favicon URLs (Supabase storage supports image transformations via URL)
-    const baseUrl = urlData.publicUrl.split("?")[0];
-    const favicon16 = `${baseUrl}?width=16&height=16&resize=contain`;
-    const favicon32 = `${baseUrl}?width=32&height=32&resize=contain`;
-
-    const { error: updateError } = await context.supabase
-      .from("tenants")
-      .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 } as any)
-      .eq("id", u.tenant_id);
-
-    if (updateError) {
-      const missingFaviconColumn =
-        updateError.code === "42703" ||
-        updateError.code === "PGRST204" ||
-        String(updateError.message ?? "").includes("favicon_url");
-      if (!missingFaviconColumn) throw updateError;
-      const { error: logoOnlyError } = await context.supabase
-        .from("tenants")
-        .update({ logo_url: urlData.publicUrl })
-        .eq("id", u.tenant_id);
-      if (logoOnlyError) throw logoOnlyError;
-    }
-
-    return { ok: true, logo_url: urlData.publicUrl, favicon_16: favicon16, favicon_32: favicon32 };
   });

@@ -3,11 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function tenantOf(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("users")
-    .select("tenant_id")
-    .eq("supabase_auth_id", userId)
-    .maybeSingle();
+  const { data } = await supabase.from("users").select("tenant_id").eq("supabase_auth_id", userId).maybeSingle();
   return data?.tenant_id as string | null;
 }
 
@@ -31,15 +27,13 @@ export const listCalendarConnections = createServerFn({ method: "GET" })
 export const upsertCalendarConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z
-      .object({
-        staff_id: z.string().uuid(),
-        provider: z.enum(PROVIDERS),
-        account_email: z.string().email().max(255),
-        calendar_id: z.string().max(255).optional().nullable(),
-        sync_enabled: z.boolean().default(true),
-      })
-      .parse(d),
+    z.object({
+      staff_id: z.string().uuid(),
+      provider: z.enum(PROVIDERS),
+      account_email: z.string().email().max(255),
+      calendar_id: z.string().max(255).optional().nullable(),
+      sync_enabled: z.boolean().default(true),
+    }).parse(d),
   )
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
@@ -65,11 +59,7 @@ export const deleteCalendarConnection = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
-    const { error } = await context.supabase
-      .from("calendar_connections")
-      .delete()
-      .eq("id", data.id)
-      .eq("tenant_id", tenantId);
+    const { error } = await context.supabase.from("calendar_connections").delete().eq("id", data.id).eq("tenant_id", tenantId);
     if (error) throw error;
     return { ok: true };
   });

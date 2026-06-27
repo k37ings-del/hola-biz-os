@@ -4,9 +4,11 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
 }
 
 export const getBookingPage = createServerFn({ method: "GET" })
@@ -20,14 +22,12 @@ export const getBookingPage = createServerFn({ method: "GET" })
 
 export const getAvailability = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
-    z
-      .object({
-        tenant_id: z.string().uuid(),
-        service_id: z.string().uuid(),
-        staff_id: z.string().uuid().nullable().optional(),
-        day: z.string(),
-      })
-      .parse(d),
+    z.object({
+      tenant_id: z.string().uuid(),
+      service_id: z.string().uuid(),
+      staff_id: z.string().uuid().nullable().optional(),
+      day: z.string(),
+    }).parse(d),
   )
   .handler(async ({ data }) => {
     const sb = publicClient();
@@ -43,19 +43,17 @@ export const getAvailability = createServerFn({ method: "GET" })
 
 export const createPublicBooking = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
-    z
-      .object({
-        tenant_id: z.string().uuid(),
-        service_id: z.string().uuid(),
-        staff_id: z.string().uuid().nullable().optional(),
-        starts_at: z.string(),
-        customer_name: z.string().trim().min(2).max(100),
-        customer_email: z.string().trim().email().max(255).optional().or(z.literal("")),
-        customer_phone: z.string().trim().max(40).optional().or(z.literal("")),
-        intake: z.record(z.string(), z.any()).default({}),
-        timezone: z.string().max(80),
-      })
-      .parse(d),
+    z.object({
+      tenant_id: z.string().uuid(),
+      service_id: z.string().uuid(),
+      staff_id: z.string().uuid().nullable().optional(),
+      starts_at: z.string(),
+      customer_name: z.string().trim().min(2).max(100),
+      customer_email: z.string().trim().email().max(255).optional().or(z.literal("")),
+      customer_phone: z.string().trim().max(40).optional().or(z.literal("")),
+      intake: z.record(z.string(), z.any()).default({}),
+      timezone: z.string().max(80),
+    }).parse(d),
   )
   .handler(async ({ data }) => {
     const sb = publicClient();

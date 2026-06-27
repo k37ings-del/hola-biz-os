@@ -45,10 +45,7 @@ const VARIANT_CLASS: Record<Variant, string> = {
 export function StatusBadge({ status, override }: { status: string; override?: string }) {
   const cfg = STATUS_MAP[status] ?? { variant: "muted" as Variant, label: status };
   return (
-    <Badge
-      variant="outline"
-      className={cn("text-[11px] font-medium border", VARIANT_CLASS[cfg.variant])}
-    >
+    <Badge variant="outline" className={cn("text-[11px] font-medium border", VARIANT_CLASS[cfg.variant])}>
       {override ?? cfg.label}
     </Badge>
   );

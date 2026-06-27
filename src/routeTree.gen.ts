@@ -23,6 +23,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
@@ -33,7 +34,6 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as ApiPublicWebhooksWhatsappRouteImport } from './routes/api/public/webhooks/whatsapp'
 import { Route as ApiPublicIcsTokenRouteImport } from './routes/api/public/ics.$token'
 import { Route as ApiPublicHooksRunAutomationsRouteImport } from './routes/api/public/hooks/run-automations'
 
@@ -106,6 +106,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -157,12 +162,6 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicWebhooksWhatsappRoute =
-  ApiPublicWebhooksWhatsappRouteImport.update({
-    id: '/api/public/webhooks/whatsapp',
-    path: '/api/public/webhooks/whatsapp',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicIcsTokenRoute = ApiPublicIcsTokenRouteImport.update({
   id: '/api/public/ics/$token',
   path: '/api/public/ics/$token',
@@ -189,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof AuthenticatedInboxRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -201,7 +201,6 @@ export interface FileRoutesByFullPath {
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
   '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
-  '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -217,6 +216,7 @@ export interface FileRoutesByTo {
   '/inbox': typeof AuthenticatedInboxRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -229,7 +229,6 @@ export interface FileRoutesByTo {
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
   '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
-  '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,6 +246,7 @@ export interface FileRoutesById {
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -259,7 +259,6 @@ export interface FileRoutesById {
   '/waitlist/$token': typeof WaitlistTokenRoute
   '/api/public/hooks/run-automations': typeof ApiPublicHooksRunAutomationsRoute
   '/api/public/ics/$token': typeof ApiPublicIcsTokenRoute
-  '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,6 +276,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/invoices'
     | '/payments'
+    | '/platform'
     | '/schedule'
     | '/services'
     | '/settings'
@@ -289,7 +289,6 @@ export interface FileRouteTypes {
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
     | '/api/public/ics/$token'
-    | '/api/public/webhooks/whatsapp'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -305,6 +304,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/invoices'
     | '/payments'
+    | '/platform'
     | '/schedule'
     | '/services'
     | '/settings'
@@ -317,7 +317,6 @@ export interface FileRouteTypes {
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
     | '/api/public/ics/$token'
-    | '/api/public/webhooks/whatsapp'
   id:
     | '__root__'
     | '/'
@@ -334,6 +333,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inbox'
     | '/_authenticated/invoices'
     | '/_authenticated/payments'
+    | '/_authenticated/platform'
     | '/_authenticated/schedule'
     | '/_authenticated/services'
     | '/_authenticated/settings'
@@ -346,7 +346,6 @@ export interface FileRouteTypes {
     | '/waitlist/$token'
     | '/api/public/hooks/run-automations'
     | '/api/public/ics/$token'
-    | '/api/public/webhooks/whatsapp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -362,7 +361,6 @@ export interface RootRouteChildren {
   WaitlistTokenRoute: typeof WaitlistTokenRoute
   ApiPublicHooksRunAutomationsRoute: typeof ApiPublicHooksRunAutomationsRoute
   ApiPublicIcsTokenRoute: typeof ApiPublicIcsTokenRoute
-  ApiPublicWebhooksWhatsappRoute: typeof ApiPublicWebhooksWhatsappRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -465,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/payments': {
       id: '/_authenticated/payments'
       path: '/payments'
@@ -535,13 +540,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/webhooks/whatsapp': {
-      id: '/api/public/webhooks/whatsapp'
-      path: '/api/public/webhooks/whatsapp'
-      fullPath: '/api/public/webhooks/whatsapp'
-      preLoaderRoute: typeof ApiPublicWebhooksWhatsappRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/ics/$token': {
       id: '/api/public/ics/$token'
       path: '/api/public/ics/$token'
@@ -570,6 +568,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -587,6 +586,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
@@ -609,7 +609,6 @@ const rootRouteChildren: RootRouteChildren = {
   WaitlistTokenRoute: WaitlistTokenRoute,
   ApiPublicHooksRunAutomationsRoute: ApiPublicHooksRunAutomationsRoute,
   ApiPublicIcsTokenRoute: ApiPublicIcsTokenRoute,
-  ApiPublicWebhooksWhatsappRoute: ApiPublicWebhooksWhatsappRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

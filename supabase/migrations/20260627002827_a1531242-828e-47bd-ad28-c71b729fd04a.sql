@@ -1,1 +1,0 @@
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS favicon_url TEXT;

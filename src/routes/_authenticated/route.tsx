@@ -1,15 +1,7 @@
-import {
-  createFileRoute,
-  Outlet,
-  redirect,
-  useNavigate,
-  Link,
-  useRouterState,
-} from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, useSignOut } from "@/lib/auth";
-import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 import {
   SidebarProvider,
   Sidebar,
@@ -26,21 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  LayoutDashboard,
-  Inbox,
-  Users,
-  Calendar,
-  Briefcase,
-  UserCog,
-  Wallet,
-  Settings,
-  Shield,
-  LogOut,
-  Loader2,
-  Zap,
-  CalendarClock,
-} from "lucide-react";
+import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, Activity, CalendarClock } from "lucide-react";
 import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -73,9 +51,7 @@ function AuthenticatedLayout() {
   const signOut = useSignOut();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const faviconUrl = data?.tenant?.favicon_url || data?.tenant?.logo_url;
-  useTenantFavicon(faviconUrl);
-
+  // Authenticated but no profile row yet — bounce to /auth from an effect (never during render).
   useEffect(() => {
     if (!isLoading && !data) navigate({ to: "/auth" });
   }, [isLoading, data, navigate]);
@@ -101,15 +77,8 @@ function AuthenticatedLayout() {
                 <img src={holawebLogo.url} alt="Holaweb" className="h-full w-auto" />
               </div>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                <p className="text-sm font-semibold truncate text-sidebar-foreground">
-                  {tenant.name}
-                </p>
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] uppercase mt-0.5 bg-sidebar-accent text-sidebar-accent-foreground border-0"
-                >
-                  {tenant.plan_tier}
-                </Badge>
+                <p className="text-sm font-semibold truncate text-sidebar-foreground">{tenant.name}</p>
+                <Badge variant="secondary" className="text-[10px] uppercase mt-0.5 bg-sidebar-accent text-sidebar-accent-foreground border-0">{tenant.plan_tier}</Badge>
               </div>
             </div>
           </SidebarHeader>
@@ -129,15 +98,27 @@ function AuthenticatedLayout() {
                     </SidebarMenuItem>
                   ))}
                   {canSeeAdmin && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
-                        <Link to="/admin">
-                          <Shield className="h-4 w-4" />
-                          <span>Companies</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith("/platform")}>
+                          <Link to="/platform">
+                            <Activity className="h-4 w-4" />
+                            <span>Platform</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
+                          <Link to="/admin">
+                            <Shield className="h-4 w-4" />
+                            <span>Companies</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </>
                   )}
+
+
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

@@ -6,7 +6,8 @@ import { createFileRoute } from "@tanstack/react-router";
  *
  * Currently supports:
  * - Email via Resend (booking_confirmed, before_appointment, post_visit_review, waitlist_offer)
- * - WhatsApp via WhatsApp Cloud API
+ *
+ * WhatsApp / SMS dispatchers can be added by extending the `dispatch()` function.
  */
 export const Route = createFileRoute("/api/public/hooks/run-automations")({
   server: {
@@ -14,10 +15,7 @@ export const Route = createFileRoute("/api/public/hooks/run-automations")({
       POST: async ({ request }) => {
         const apiKey = request.headers.get("apikey");
         if (!apiKey) {
-          return new Response(JSON.stringify({ error: "missing_apikey" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(JSON.stringify({ error: "missing_apikey" }), { status: 401, headers: { "Content-Type": "application/json" } });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const resendKey = process.env.RESEND_API_KEY;
@@ -75,11 +73,7 @@ export const Route = createFileRoute("/api/public/hooks/run-automations")({
 
 type DispatchResult = { channel: string; skipped?: boolean; reason?: string; provider_id?: string };
 
-async function dispatch(
-  sb: any,
-  run: any,
-  resendKey: string | undefined,
-): Promise<DispatchResult[]> {
+async function dispatch(sb: any, run: any, resendKey: string | undefined): Promise<DispatchResult[]> {
   // Resolve booking + tenant context for templating
   let booking: any = null;
   let tenant: any = null;
@@ -90,19 +84,11 @@ async function dispatch(
     booking = data;
   }
   if (run.tenant_id) {
-    const { data } = await sb
-      .from("tenants")
-      .select("id, name, slug, email, brand_color")
-      .eq("id", run.tenant_id)
-      .maybeSingle();
+    const { data } = await sb.from("tenants").select("id, name, slug, email, brand_color").eq("id", run.tenant_id).maybeSingle();
     tenant = data;
   }
   if (booking?.service_id) {
-    const { data } = await sb
-      .from("services")
-      .select("name, duration_minutes")
-      .eq("id", booking.service_id)
-      .maybeSingle();
+    const { data } = await sb.from("services").select("name, duration_minutes").eq("id", booking.service_id).maybeSingle();
     service = data;
   }
 
@@ -182,17 +168,11 @@ async function dispatch(
     }
     case "waitlist_offer": {
       const { claim_token } = run.payload ?? {};
-      const { data: w } = await sb
-        .from("waiting_list")
-        .select("customer_email, customer_name, customer_phone")
-        .eq("id", run.payload?.waiting_list_id)
-        .maybeSingle();
+      const { data: w } = await sb.from("waiting_list").select("customer_email, customer_name, customer_phone").eq("id", run.payload?.waiting_list_id).maybeSingle();
       toEmail = w?.customer_email ?? null;
       toPhone = w?.customer_phone ?? null;
       waEnabled = true;
-      const claimUrl = claim_token
-        ? `https://hola-biz-os.lovable.app/waitlist/${claim_token}`
-        : null;
+      const claimUrl = claim_token ? `https://hola-biz-os.lovable.app/waitlist/${claim_token}` : null;
       subject = `A slot opened up at ${tenant?.name ?? "us"} — claim it now`;
       html = renderBookingEmail({
         title: "A spot opened up ⏰",
@@ -209,85 +189,56 @@ async function dispatch(
       break;
     }
     default: {
-      return [
-        { channel: "email", skipped: true, reason: `unsupported trigger: ${run.trigger_type}` },
-      ];
+      return [{ channel: "email", skipped: true, reason: `unsupported trigger: ${run.trigger_type}` }];
     }
   }
 
   const results: DispatchResult[] = [];
   results.push(await sendEmail({ to: toEmail, subject, html, tenant, resendKey }));
   if (waEnabled && waText) {
-    results.push(await sendWhatsApp({ to: toPhone, text: waText, tenant }));
+    results.push(await sendWhatsApp({ to: toPhone, text: waText }));
   }
   return results;
 }
 
-async function sendEmail(opts: {
-  to: string | null;
-  subject: string;
-  html: string;
-  tenant: any;
-  resendKey: string | undefined;
-}): Promise<DispatchResult> {
-  if (!opts.resendKey)
-    return { channel: "email", skipped: true, reason: "RESEND_API_KEY not configured" };
+async function sendEmail(opts: { to: string | null; subject: string; html: string; tenant: any; resendKey: string | undefined }): Promise<DispatchResult> {
+  if (!opts.resendKey) return { channel: "email", skipped: true, reason: "RESEND_API_KEY not configured" };
   if (!opts.to) return { channel: "email", skipped: true, reason: "no recipient email" };
   const fromName = opts.tenant?.name ?? "HolaWeb";
   const fromAddress = `${fromName} <onboarding@resend.dev>`;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${opts.resendKey}` },
-    body: JSON.stringify({
-      from: fromAddress,
-      to: [opts.to],
-      subject: opts.subject,
-      html: opts.html,
-      reply_to: opts.tenant?.email ?? undefined,
-    }),
+    body: JSON.stringify({ from: fromAddress, to: [opts.to], subject: opts.subject, html: opts.html, reply_to: opts.tenant?.email ?? undefined }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const json: any = await res.json().catch(() => ({}));
   return { channel: "email", provider_id: json?.id ?? null };
 }
 
-async function sendWhatsApp(opts: {
-  to: string | null;
-  text: string;
-  tenant: any;
-}): Promise<DispatchResult> {
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-
-  if (!accessToken || !opts.tenant?.wa_number_id) {
-    throw new Error("WhatsApp Cloud API not configured");
+async function sendWhatsApp(opts: { to: string | null; text: string }): Promise<DispatchResult> {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM; // e.g. "whatsapp:+14155238886"
+  if (!sid || !token || !from) {
+    return { channel: "whatsapp", skipped: true, reason: "Twilio WhatsApp not configured" };
   }
-
-  const { WhatsAppCloudService } = await import("@/lib/whatsapp-cloud.service");
-  const service = new WhatsAppCloudService({
-    accessToken: process.env.WHATSAPP_ACCESS_TOKEN!,
-    phoneNumberId: opts.tenant.wa_number_id,
-    businessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || "",
-    webhookVerifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "",
+  if (!opts.to) return { channel: "whatsapp", skipped: true, reason: "no recipient phone" };
+  const toNumber = opts.to.startsWith("whatsapp:") ? opts.to : `whatsapp:${opts.to.replace(/\s+/g, "")}`;
+  const auth = Buffer.from(`${sid}:${token}`).toString("base64");
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Authorization: `Basic ${auth}` },
+    body: new URLSearchParams({ To: toNumber, From: from, Body: opts.text }),
   });
-
-  const result = await service.sendTextMessage({
-    to: opts.to ? `whatsapp:${opts.to.replace(/\s+/g, "")}` : "",
-    body: opts.text,
-  });
-
-  return {
-    channel: "whatsapp",
-    skipped: !result.success,
-    reason: result.error,
-    provider_id: result.messageId,
-  };
+  if (!res.ok) throw new Error(`Twilio ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const json: any = await res.json().catch(() => ({}));
+  return { channel: "whatsapp", provider_id: json?.sid ?? null };
 }
 
+
 function escapeHtml(s: string | null | undefined) {
-  return String(s ?? "").replace(
-    /[&<>"']/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
-  );
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
 function renderBookingEmail(opts: {
@@ -301,19 +252,15 @@ function renderBookingEmail(opts: {
   brand: string;
   ctaLabel?: string;
 }) {
-  const cta =
-    opts.portalUrl && opts.ctaLabel
-      ? `<a href="${opts.portalUrl}" style="display:inline-block;background:${opts.brand};color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:14px;margin-top:18px">${escapeHtml(opts.ctaLabel)}</a>`
-      : "";
+  const cta = opts.portalUrl && opts.ctaLabel
+    ? `<a href="${opts.portalUrl}" style="display:inline-block;background:${opts.brand};color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:14px;margin-top:18px">${escapeHtml(opts.ctaLabel)}</a>`
+    : "";
   const rows = [
     opts.customerName && row("Name", escapeHtml(opts.customerName)),
     opts.serviceName && row("Service", escapeHtml(opts.serviceName)),
     opts.whenStr && row("When", escapeHtml(opts.whenStr)),
-    opts.refCode &&
-      row("Reference", `<code style="font-family:monospace">${escapeHtml(opts.refCode)}</code>`),
-  ]
-    .filter(Boolean)
-    .join("");
+    opts.refCode && row("Reference", `<code style="font-family:monospace">${escapeHtml(opts.refCode)}</code>`),
+  ].filter(Boolean).join("");
 
   return `<!doctype html><html><body style="margin:0;background:#f6f6f8;font-family:-apple-system,Segoe UI,sans-serif;color:#1a1a1a">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">

@@ -3,26 +3,14 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import {
-  Calendar as CalendarIcon,
-  Check,
-  ChevronLeft,
-  Clock,
-  User,
-  Loader2,
-  CreditCard,
-} from "lucide-react";
+import { Calendar as CalendarIcon, Check, ChevronLeft, Clock, User, Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { formatCurrency } from "@/lib/format";
-import {
-  getBookingPage,
-  getAvailability,
-  createPublicBooking,
-} from "@/lib/public-booking.functions";
+import { getBookingPage, getAvailability, createPublicBooking } from "@/lib/public-booking.functions";
 import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/book/$slug")({
@@ -35,12 +23,7 @@ export const Route = createFileRoute("/book/$slug")({
   head: ({ loaderData }) => ({
     meta: [
       { title: loaderData ? `Book with ${loaderData.tenant.name}` : "Book online" },
-      {
-        name: "description",
-        content: loaderData
-          ? `Book an appointment with ${loaderData.tenant.name} online.`
-          : "Book an appointment online.",
-      },
+      { name: "description", content: loaderData ? `Book an appointment with ${loaderData.tenant.name} online.` : "Book an appointment online." },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
     ],
   }),
@@ -71,11 +54,10 @@ const STEPS: { key: Step; label: string }[] = [
 function PublicBookingPage() {
   const page = Route.useLoaderData() as any;
   const tenant = page.tenant;
-  useTenantFavicon(tenant?.favicon_url || tenant?.logo_url);
+  useTenantFavicon(tenant?.logo_url);
   const services: any[] = page.services ?? [];
   const staffAll: any[] = page.staff ?? [];
-  const intakeForm: { id: string; label: string; type: "text" | "textarea"; required?: boolean }[] =
-    page.tenant.intake_form ?? [];
+  const intakeForm: { id: string; label: string; type: "text" | "textarea"; required?: boolean }[] = page.tenant.intake_form ?? [];
 
   const [step, setStep] = useState<Step>("service");
   const [serviceId, setServiceId] = useState<string>("");
@@ -86,35 +68,29 @@ function PublicBookingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [intake, setIntake] = useState<Record<string, string>>({});
-  const [confirmation, setConfirmation] = useState<{
-    id: string;
-    ref_code: string;
-    portal_token?: string;
-  } | null>(null);
+  const [confirmation, setConfirmation] = useState<{ id: string; ref_code: string; portal_token?: string } | null>(null);
   const navigate = useNavigate();
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const service = useMemo(() => services.find((s) => s.id === serviceId), [services, serviceId]);
-  const eligibleStaff = useMemo(
-    () => staffAll.filter((s) => !serviceId || (s.service_ids as string[]).includes(serviceId)),
-    [staffAll, serviceId],
-  );
+  const eligibleStaff = useMemo(() =>
+    staffAll.filter((s) => !serviceId || (s.service_ids as string[]).includes(serviceId)),
+  [staffAll, serviceId]);
 
   const fetchAvail = useServerFn(getAvailability);
   const submit = useServerFn(createPublicBooking);
 
   const availQ = useQuery({
     queryKey: ["pub-avail", tenant.id, serviceId, staffId, date?.toDateString()],
-    enabled: !!(serviceId && date && step === "time"),
-    queryFn: () =>
-      fetchAvail({
-        data: {
-          tenant_id: tenant.id,
-          service_id: serviceId,
-          staff_id: staffId,
-          day: date!.toISOString().slice(0, 10),
-        },
-      }),
+    enabled: !!(serviceId && date && (step === "time")),
+    queryFn: () => fetchAvail({
+      data: {
+        tenant_id: tenant.id,
+        service_id: serviceId,
+        staff_id: staffId,
+        day: date!.toISOString().slice(0, 10),
+      },
+    }),
   });
 
   const slots = useMemo(() => {
@@ -132,16 +108,12 @@ function PublicBookingPage() {
       end: new Date(b.ends_at).getTime(),
     }));
     const out: { iso: string; label: string; taken: boolean }[] = [];
-    const start = new Date(date);
-    start.setHours(oh, om, 0, 0);
-    const end = new Date(date);
-    end.setHours(ch, cm, 0, 0);
+    const start = new Date(date); start.setHours(oh, om, 0, 0);
+    const end = new Date(date); end.setHours(ch, cm, 0, 0);
     for (let t = start.getTime(); t + dur * 60000 <= end.getTime(); t += 30 * 60000) {
       const slotStart = t;
       const slotEnd = t + dur * 60000;
-      const taken = existing.some(
-        (b: any) => slotStart < b.end + buffer * 60000 && slotEnd + buffer * 60000 > b.start,
-      );
+      const taken = existing.some((b: any) => slotStart < b.end + buffer * 60000 && slotEnd + buffer * 60000 > b.start);
       const past = slotStart < Date.now();
       const d = new Date(slotStart);
       out.push({
@@ -190,20 +162,11 @@ function PublicBookingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Branded header */}
-      <header
-        className="border-b"
-        style={{
-          background: `linear-gradient(135deg, ${brand} 0%, color-mix(in oklab, ${brand} 70%, black) 100%)`,
-        }}
-      >
+      <header className="border-b" style={{ background: `linear-gradient(135deg, ${brand} 0%, color-mix(in oklab, ${brand} 70%, black) 100%)` }}>
         <div className="max-w-2xl mx-auto px-4 py-6 text-white">
           <div className="flex items-center gap-3">
             {tenant.logo_url && (
-              <img
-                src={tenant.logo_url}
-                alt={tenant.name}
-                className="h-10 w-10 rounded-md bg-white p-1 object-contain"
-              />
+              <img src={tenant.logo_url} alt={tenant.name} className="h-10 w-10 rounded-md bg-white p-1 object-contain" />
             )}
             <div className="min-w-0">
               <h1 className="text-xl font-display font-semibold truncate">{tenant.name}</h1>
@@ -223,9 +186,7 @@ function PublicBookingPage() {
               const active = i === idx;
               return (
                 <div key={s.key} className="flex items-center gap-1.5 shrink-0">
-                  <div
-                    className={`h-5 w-5 rounded-full grid place-items-center text-[10px] font-semibold ${done ? "bg-primary text-primary-foreground" : active ? "border-2 border-primary text-primary" : "border border-border"}`}
-                  >
+                  <div className={`h-5 w-5 rounded-full grid place-items-center text-[10px] font-semibold ${done ? "bg-primary text-primary-foreground" : active ? "border-2 border-primary text-primary" : "border border-border"}`}>
                     {done ? <Check className="h-3 w-3" /> : i + 1}
                   </div>
                   <span className={active ? "font-medium text-foreground" : ""}>{s.label}</span>
@@ -244,11 +205,7 @@ function PublicBookingPage() {
               {services.map((s) => (
                 <button
                   key={s.id}
-                  onClick={() => {
-                    setServiceId(s.id);
-                    setStaffId(null);
-                    next("staff");
-                  }}
+                  onClick={() => { setServiceId(s.id); setStaffId(null); next("staff"); }}
                   className="w-full text-left p-4 border rounded-lg hover:border-primary hover:bg-accent/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -258,9 +215,7 @@ function PublicBookingPage() {
                         <Clock className="h-3 w-3" /> {s.duration_minutes} min
                       </p>
                     </div>
-                    <span className="font-display font-semibold text-sm">
-                      {formatCurrency(s.price_cents, s.currency)}
-                    </span>
+                    <span className="font-display font-semibold text-sm">{formatCurrency(s.price_cents, s.currency)}</span>
                   </div>
                 </button>
               ))}
@@ -273,36 +228,22 @@ function PublicBookingPage() {
           <Section title="Pick a team member (optional)" onBack={() => back("service")}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
-                onClick={() => {
-                  setStaffId(null);
-                  next("date");
-                }}
+                onClick={() => { setStaffId(null); next("date"); }}
                 className="p-4 border rounded-lg hover:border-primary text-center"
               >
-                <div className="h-12 w-12 rounded-full bg-accent mx-auto grid place-items-center">
-                  <User className="h-5 w-5" />
-                </div>
+                <div className="h-12 w-12 rounded-full bg-accent mx-auto grid place-items-center"><User className="h-5 w-5" /></div>
                 <p className="text-xs mt-2 font-medium">Any available</p>
               </button>
               {eligibleStaff.map((s) => (
                 <button
                   key={s.id}
-                  onClick={() => {
-                    setStaffId(s.id);
-                    next("date");
-                  }}
+                  onClick={() => { setStaffId(s.id); next("date"); }}
                   className="p-4 border rounded-lg hover:border-primary text-center"
                 >
                   {s.photo_url ? (
-                    <img
-                      src={s.photo_url}
-                      alt={s.name}
-                      className="h-12 w-12 rounded-full object-cover mx-auto"
-                    />
+                    <img src={s.photo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover mx-auto" />
                   ) : (
-                    <div className="h-12 w-12 rounded-full bg-accent mx-auto grid place-items-center text-sm font-medium">
-                      {s.name[0]}
-                    </div>
+                    <div className="h-12 w-12 rounded-full bg-accent mx-auto grid place-items-center text-sm font-medium">{s.name[0]}</div>
                   )}
                   <p className="text-xs mt-2 font-medium truncate">{s.name}</p>
                   <p className="text-[10px] text-muted-foreground capitalize">{s.role}</p>
@@ -318,12 +259,7 @@ function PublicBookingPage() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(d) => {
-                  if (d) {
-                    setDate(d);
-                    next("time");
-                  }
-                }}
+                onSelect={(d) => { if (d) { setDate(d); next("time"); } }}
                 disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
               />
             </div>
@@ -331,14 +267,9 @@ function PublicBookingPage() {
         )}
 
         {step === "time" && (
-          <Section
-            title={`Pick a time · ${date?.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}`}
-            onBack={() => back("date")}
-          >
+          <Section title={`Pick a time · ${date?.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}`} onBack={() => back("date")}>
             {availQ.isLoading ? (
-              <div className="py-8 text-center text-muted-foreground text-sm">
-                <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-              </div>
+              <div className="py-8 text-center text-muted-foreground text-sm"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div>
             ) : slots.length === 0 ? (
               <Empty text="No slots available on this day. Try another date." />
             ) : (
@@ -348,10 +279,7 @@ function PublicBookingPage() {
                     <button
                       key={s.iso}
                       disabled={s.taken}
-                      onClick={() => {
-                        setSlot(s.iso);
-                        next("info");
-                      }}
+                      onClick={() => { setSlot(s.iso); next("info"); }}
                       className="py-3 px-2 rounded-md border text-sm font-medium hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:line-through"
                     >
                       {s.label}
@@ -361,11 +289,9 @@ function PublicBookingPage() {
                 <div className="mt-4 p-3 rounded-md bg-muted/50 text-xs text-muted-foreground flex items-center justify-between gap-2">
                   <span>Don't see a time that works?</span>
                   <a
-                    href={`/waitlist-join/${tenant.slug}?service=${serviceId}${staffId ? `&staff=${staffId}` : ""}${date ? `&from=${date.toISOString().slice(0, 10)}` : ""}`}
+                    href={`/waitlist-join/${tenant.slug}?service=${serviceId}${staffId ? `&staff=${staffId}` : ""}${date ? `&from=${date.toISOString().slice(0,10)}` : ""}`}
                     className="text-primary font-medium hover:underline"
-                  >
-                    Join the waiting list →
-                  </a>
+                  >Join the waiting list →</a>
                 </div>
               </>
             )}
@@ -376,31 +302,15 @@ function PublicBookingPage() {
           <Section title="Your contact details" onBack={() => back("time")}>
             <div className="space-y-4">
               <Field label="Full name" required>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Doe"
-                />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
               </Field>
               <Field label="Email">
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jane@example.com"
-                />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" />
               </Field>
               <Field label="Phone (WhatsApp)">
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+27 82 123 4567"
-                />
+                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27 82 123 4567" />
               </Field>
-              <p className="text-xs text-muted-foreground">
-                We need an email or phone number to send your confirmation.
-              </p>
+              <p className="text-xs text-muted-foreground">We need an email or phone number to send your confirmation.</p>
             </div>
             <FooterBar
               disabled={name.trim().length < 2 || (!email && !phone)}
@@ -416,16 +326,9 @@ function PublicBookingPage() {
               {intakeForm.map((q) => (
                 <Field key={q.id} label={q.label} required={q.required}>
                   {q.type === "textarea" ? (
-                    <Textarea
-                      rows={3}
-                      value={intake[q.id] || ""}
-                      onChange={(e) => setIntake({ ...intake, [q.id]: e.target.value })}
-                    />
+                    <Textarea rows={3} value={intake[q.id] || ""} onChange={(e) => setIntake({ ...intake, [q.id]: e.target.value })} />
                   ) : (
-                    <Input
-                      value={intake[q.id] || ""}
-                      onChange={(e) => setIntake({ ...intake, [q.id]: e.target.value })}
-                    />
+                    <Input value={intake[q.id] || ""} onChange={(e) => setIntake({ ...intake, [q.id]: e.target.value })} />
                   )}
                 </Field>
               ))}
@@ -435,43 +338,18 @@ function PublicBookingPage() {
         )}
 
         {step === "review" && (
-          <Section
-            title="Review your booking"
-            onBack={() => back(intakeForm.length > 0 ? "intake" : "info")}
-          >
+          <Section title="Review your booking" onBack={() => back(intakeForm.length > 0 ? "intake" : "info")}>
             <div className="border rounded-lg divide-y bg-card">
               <Row k="Service" v={service?.name ?? "—"} />
               <Row k="Duration" v={`${service?.duration_minutes} min`} />
-              <Row
-                k="With"
-                v={
-                  staffId
-                    ? (eligibleStaff.find((s) => s.id === staffId)?.name ?? "—")
-                    : "Any available"
-                }
-              />
-              <Row
-                k="When"
-                v={
-                  slot
-                    ? new Date(slot).toLocaleString(undefined, {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })
-                    : "—"
-                }
-              />
+              <Row k="With" v={staffId ? eligibleStaff.find((s) => s.id === staffId)?.name ?? "—" : "Any available"} />
+              <Row k="When" v={slot ? new Date(slot).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—"} />
               <Row k="Name" v={name} />
               {email && <Row k="Email" v={email} />}
               {phone && <Row k="Phone" v={phone} />}
               <div className="p-4 flex items-center justify-between bg-accent/20">
                 <span className="text-sm font-medium">Total</span>
-                <span className="font-display font-semibold">
-                  {service && formatCurrency(service.price_cents, service.currency)}
-                </span>
+                <span className="font-display font-semibold">{service && formatCurrency(service.price_cents, service.currency)}</span>
               </div>
             </div>
             <FooterBar label="Continue to payment" onClick={() => next("pay")} />
@@ -484,8 +362,7 @@ function PublicBookingPage() {
               <CreditCard className="h-8 w-8 mx-auto text-muted-foreground" />
               <p className="text-sm font-medium mt-3">Online payment coming soon</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Your booking will be reserved and you'll receive payment instructions by{" "}
-                {email ? "email" : "WhatsApp"}.
+                Your booking will be reserved and you'll receive payment instructions by {email ? "email" : "WhatsApp"}.
               </p>
             </div>
             <FooterBar
@@ -498,10 +375,7 @@ function PublicBookingPage() {
 
         {step === "done" && confirmation && (
           <div className="text-center py-12">
-            <div
-              className="h-16 w-16 rounded-full mx-auto grid place-items-center"
-              style={{ background: `${brand}20` }}
-            >
+            <div className="h-16 w-16 rounded-full mx-auto grid place-items-center" style={{ background: `${brand}20` }}>
               <Check className="h-8 w-8" style={{ color: brand }} />
             </div>
             <h2 className="font-display font-semibold text-2xl mt-4">You're booked!</h2>
@@ -524,29 +398,15 @@ function PublicBookingPage() {
 
       <footer className="text-center text-xs text-muted-foreground py-6 border-t space-y-2">
         <div>
-          Already booked?{" "}
-          <a href="/my" className="underline hover:text-foreground">
-            Find my appointment
-          </a>
+          Already booked? <a href="/my" className="underline hover:text-foreground">Find my appointment</a>
         </div>
-        <div>
-          Powered by{" "}
-          <span className="font-display font-medium">HolaWeb Appointments & Commerce OS</span>
-        </div>
+        <div>Powered by <span className="font-display font-medium">HolaWeb Appointments & Commerce OS</span></div>
       </footer>
     </div>
   );
 }
 
-function Section({
-  title,
-  children,
-  onBack,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onBack?: () => void;
-}) {
+function Section({ title, children, onBack }: { title: string; children: React.ReactNode; onBack?: () => void }) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-4">
@@ -562,21 +422,10 @@ function Section({
   );
 }
 
-function Field({
-  label,
-  children,
-  required,
-}: {
-  label: string;
-  children: React.ReactNode;
-  required?: boolean;
-}) {
+function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div>
-      <Label className="text-xs">
-        {label}
-        {required && <span className="text-danger ml-0.5">*</span>}
-      </Label>
+      <Label className="text-xs">{label}{required && <span className="text-danger ml-0.5">*</span>}</Label>
       <div className="mt-1">{children}</div>
     </div>
   );
@@ -595,15 +444,7 @@ function Empty({ text }: { text: string }) {
   return <p className="text-center text-sm text-muted-foreground py-8">{text}</p>;
 }
 
-function FooterBar({
-  label,
-  onClick,
-  disabled,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
+function FooterBar({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur px-4 py-3 z-50">
       <div className="max-w-2xl mx-auto">

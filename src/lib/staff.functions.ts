@@ -32,9 +32,7 @@ export const listStaff = createServerFn({ method: "GET" })
       await Promise.all([
         context.supabase
           .from("staff")
-          .select(
-            "id, name, wa_number, email, role, bio, photo_url, active, availability, created_at",
-          )
+          .select("id, name, wa_number, email, role, bio, photo_url, active, availability, created_at")
           .eq("tenant_id", tenantId)
           .order("name"),
         context.supabase
@@ -125,11 +123,7 @@ export const upsertStaff = createServerFn({ method: "POST" })
     }
 
     if (data.service_ids) {
-      await context.supabase
-        .from("staff_services")
-        .delete()
-        .eq("staff_id", staffId)
-        .eq("tenant_id", tenantId);
+      await context.supabase.from("staff_services").delete().eq("staff_id", staffId).eq("tenant_id", tenantId);
       if (data.service_ids.length) {
         const rows = data.service_ids.map((sid) => ({
           staff_id: staffId!,

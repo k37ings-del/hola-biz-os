@@ -80,49 +80,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "HolaWeb Appointments & Commerce OS" },
-      {
-        name: "description",
-        content:
-          "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses.",
-      },
+      { name: "description", content: "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses." },
       { property: "og:title", content: "HolaWeb Appointments & Commerce OS" },
-      {
-        property: "og:description",
-        content:
-          "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses.",
-      },
+      { property: "og:description", content: "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "HolaWeb Appointments & Commerce OS" },
-      {
-        name: "twitter:description",
-        content:
-          "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png",
-      },
+      { name: "twitter:description", content: "Bookings, payments, CRM, WhatsApp automation, and AI — one platform for African service businesses." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d182fcff-e660-4eb4-9eb3-77e30a949187/id-preview-ea2b25fe--7b54d0f6-909d-45c6-aa53-3e2f0f73b988.lovable.app-1781635796548.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "preconnect", href: "https://api.fontshare.com" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://api.fontshare.com/v2/css?f[]=garet@400,500,600,700,800&display=swap",
-      },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" },
+      { rel: "stylesheet", href: "https://api.fontshare.com/v2/css?f[]=garet@400,500,600,700,800&display=swap" },
     ],
   }),
   shellComponent: RootShell,

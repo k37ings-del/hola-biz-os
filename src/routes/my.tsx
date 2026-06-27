@@ -51,16 +51,9 @@ function MyPage() {
               </div>
               <h1 className="text-xl font-display font-semibold">Check your inbox</h1>
               <p className="text-sm text-muted-foreground">
-                If we found an appointment matching that contact, we've emailed you a secure link to
-                view, reschedule, or cancel it.
+                If we found an appointment matching that contact, we've emailed you a secure link to view, reschedule, or cancel it.
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSent(false);
-                  setContact("");
-                }}
-              >
+              <Button variant="outline" onClick={() => { setSent(false); setContact(""); }}>
                 Try a different contact
               </Button>
             </div>
@@ -71,8 +64,7 @@ function MyPage() {
                 <h1 className="text-xl font-display font-semibold">Find my appointment</h1>
               </div>
               <p className="text-sm text-muted-foreground mb-5">
-                Enter the email or phone you used when booking. We'll send you a secure link to your
-                appointment.
+                Enter the email or phone you used when booking. We'll send you a secure link to your appointment.
               </p>
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-1.5">
@@ -88,11 +80,7 @@ function MyPage() {
                     disabled={loading}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={loading || contact.trim().length < 4}
-                  className="w-full"
-                >
+                <Button type="submit" disabled={loading || contact.trim().length < 4} className="w-full">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send me my link"}
                 </Button>
               </form>
