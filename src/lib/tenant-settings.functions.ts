@@ -54,15 +54,28 @@ export const getTenantSettings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const u = await tenantOf(context.supabase, context.userId);
     if (!u?.tenant_id) return null;
+    const baseSelect =
+      "id, name, slug, brand_color, logo_url, email, whatsapp_number, timezone, default_currency, buffer_minutes, business_hours, country, country_code, industry, plan_tier, subscription_status";
     const { data, error } = await context.supabase
       .from("tenants")
-      .select(
-        "id, name, slug, brand_color, logo_url, favicon_url, email, whatsapp_number, timezone, default_currency, buffer_minutes, business_hours, country, country_code, industry, plan_tier, subscription_status",
-      )
+      .select(`${baseSelect}, favicon_url`)
       .eq("id", u.tenant_id)
       .maybeSingle();
-    if (error) throw error;
-    return { ...((data as any) ?? {}), role: u.role };
+    if (!error) return { ...((data as any) ?? {}), role: u.role };
+
+    const missingFaviconColumn =
+      error.code === "42703" ||
+      error.code === "PGRST204" ||
+      String(error.message ?? "").includes("favicon_url");
+    if (!missingFaviconColumn) throw error;
+
+    const { data: fallbackData, error: fallbackError } = await context.supabase
+      .from("tenants")
+      .select(baseSelect)
+      .eq("id", u.tenant_id)
+      .maybeSingle();
+    if (fallbackError) throw fallbackError;
+    return { ...((fallbackData as any) ?? {}), favicon_url: null, role: u.role };
   });
 
 export const saveTenantBranding = createServerFn({ method: "POST" })
@@ -146,7 +159,18 @@ export const uploadTenantLogo = createServerFn({ method: "POST" })
       .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 } as any)
       .eq("id", u.tenant_id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      const missingFaviconColumn =
+        updateError.code === "42703" ||
+        updateError.code === "PGRST204" ||
+        String(updateError.message ?? "").includes("favicon_url");
+      if (!missingFaviconColumn) throw updateError;
+      const { error: logoOnlyError } = await context.supabase
+        .from("tenants")
+        .update({ logo_url: urlData.publicUrl })
+        .eq("id", u.tenant_id);
+      if (logoOnlyError) throw logoOnlyError;
+    }
 
     return { ok: true, logo_url: urlData.publicUrl, favicon_16: favicon16, favicon_32: favicon32 };
   });
