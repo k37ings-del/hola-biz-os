@@ -1207,6 +1207,7 @@ export type Database = {
           created_at: string
           default_currency: string
           email: string | null
+          favicon_url: string | null
           id: string
           industry: string | null
           intake_form: Json | null
@@ -1232,6 +1233,7 @@ export type Database = {
           created_at?: string
           default_currency?: string
           email?: string | null
+          favicon_url?: string | null
           id?: string
           industry?: string | null
           intake_form?: Json | null
@@ -1257,6 +1259,7 @@ export type Database = {
           created_at?: string
           default_currency?: string
           email?: string | null
+          favicon_url?: string | null
           id?: string
           industry?: string | null
           intake_form?: Json | null
