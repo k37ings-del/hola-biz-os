@@ -143,7 +143,7 @@ export const uploadTenantLogo = createServerFn({ method: "POST" })
 
     const { error: updateError } = await context.supabase
       .from("tenants")
-      .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 })
+      .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 } as any)
       .eq("id", u.tenant_id);
 
     if (updateError) throw updateError;
