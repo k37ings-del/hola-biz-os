@@ -1457,7 +1457,6 @@ export type Database = {
         }
         Returns: Json
       }
-      public_request_portal_link: { Args: { _contact: string }; Returns: Json }
       public_reschedule_booking: {
         Args: { _new_starts_at: string; _token: string }
         Returns: Json

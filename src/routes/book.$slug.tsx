@@ -396,11 +396,8 @@ function PublicBookingPage() {
         )}
       </main>
 
-      <footer className="text-center text-xs text-muted-foreground py-6 border-t space-y-2">
-        <div>
-          Already booked? <a href="/my" className="underline hover:text-foreground">Find my appointment</a>
-        </div>
-        <div>Powered by <span className="font-display font-medium">HolaWeb Appointments & Commerce OS</span></div>
+      <footer className="text-center text-xs text-muted-foreground py-6 border-t">
+        Powered by <span className="font-display font-medium">HolaWeb Appointments & Commerce OS</span>
       </footer>
     </div>
   );

@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MyRouteImport } from './routes/my'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,11 +36,6 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as ApiPublicIcsTokenRouteImport } from './routes/api/public/ics.$token'
 import { Route as ApiPublicHooksRunAutomationsRouteImport } from './routes/api/public/hooks/run-automations'
 
-const MyRoute = MyRouteImport.update({
-  id: '/my',
-  path: '/my',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -177,7 +171,6 @@ const ApiPublicHooksRunAutomationsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/my': typeof MyRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -205,7 +198,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/my': typeof MyRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -235,7 +227,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/my': typeof MyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
@@ -265,7 +256,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/my'
     | '/admin'
     | '/automations'
     | '/bookings'
@@ -293,7 +283,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/my'
     | '/admin'
     | '/automations'
     | '/bookings'
@@ -322,7 +311,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/my'
     | '/_authenticated/admin'
     | '/_authenticated/automations'
     | '/_authenticated/bookings'
@@ -352,7 +340,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  MyRoute: typeof MyRoute
   BookSlugRoute: typeof BookSlugRoute
   CancelTokenRoute: typeof CancelTokenRoute
   PTokenRoute: typeof PTokenRoute
@@ -365,13 +352,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/my': {
-      id: '/my'
-      path: '/my'
-      fullPath: '/my'
-      preLoaderRoute: typeof MyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -600,7 +580,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  MyRoute: MyRoute,
   BookSlugRoute: BookSlugRoute,
   CancelTokenRoute: CancelTokenRoute,
   PTokenRoute: PTokenRoute,
