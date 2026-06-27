@@ -84,13 +84,13 @@
 :root {
   --radius: 0.625rem;
 
-  --background: #fafafa;
-  --foreground: #0d0d0d;
+  --background: #ffffff;
+  --foreground: #040b10;
 
   --card: #ffffff;
-  --card-foreground: #0d0d0d;
+  --card-foreground: #040b10;
   --popover: #ffffff;
-  --popover-foreground: #0d0d0d;
+  --popover-foreground: #040b10;
 
   /* Brand: Intense Cherry */
   --primary: #c5283d;
@@ -98,10 +98,10 @@
 
   /* Yale Blue as secondary/anchor */
   --secondary: #eef2f5;
-  --secondary-foreground: #1b445f;
+  --secondary-foreground: #040b10;
 
   --muted: #f3f4f6;
-  --muted-foreground: #5b6772;
+  --muted-foreground: #6b7280;
 
   --accent: #fff1e9;
   --accent-foreground: #b6532e;
@@ -112,6 +112,10 @@
   --border: #e5e7eb;
   --input: #e5e7eb;
   --ring: #c5283d;
+
+  /* Heading + subheading semantic tokens */
+  --heading: #040b10;
+  --subheading: #6b7280;
 
   /* Status semantics */
   --success: #1b445f;
@@ -142,17 +146,19 @@
   --chart-1: #c5283d;
   --chart-2: #1b445f;
   --chart-3: #e9724c;
-  --chart-4: #ffc857;
+  --chart-4: #e49800;
   --chart-5: #5b6772;
 
-  --sidebar: #1b445f;
-  --sidebar-foreground: #e8eef3;
+  /* Sidebar: Darker Golden Pollen with dark text + cherry highlights */
+  --sidebar: #e49800;
+  --sidebar-foreground: #040b10;
   --sidebar-primary: #c5283d;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #20536f;
+  --sidebar-accent: #c98700;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2a5d7a;
+  --sidebar-border: #b87a00;
   --sidebar-ring: #c5283d;
+
 }
 
 .dark {

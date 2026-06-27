@@ -62,7 +62,7 @@ export const getTenantSettings = createServerFn({ method: "GET" })
       .eq("id", u.tenant_id)
       .maybeSingle();
     if (error) throw error;
-    return { ...data, role: u.role };
+    return { ...((data as any) ?? {}), role: u.role };
   });
 
 export const saveTenantBranding = createServerFn({ method: "POST" })
@@ -143,7 +143,7 @@ export const uploadTenantLogo = createServerFn({ method: "POST" })
 
     const { error: updateError } = await context.supabase
       .from("tenants")
-      .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 })
+      .update({ logo_url: urlData.publicUrl, favicon_url: favicon32 } as any)
       .eq("id", u.tenant_id);
 
     if (updateError) throw updateError;
