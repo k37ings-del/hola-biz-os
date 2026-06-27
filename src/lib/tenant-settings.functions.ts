@@ -62,7 +62,7 @@ export const getTenantSettings = createServerFn({ method: "GET" })
       .eq("id", u.tenant_id)
       .maybeSingle();
     if (error) throw error;
-    return { ...data, role: u.role };
+    return { ...(data ?? {}), role: u.role } as any;
   });
 
 export const saveTenantBranding = createServerFn({ method: "POST" })
