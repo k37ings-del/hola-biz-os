@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format";
 import { getWaitlistOffer, claimWaitlistSlot } from "@/lib/waitlist.functions";
-import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/waitlist/$token")({
   ssr: false,
@@ -31,7 +30,6 @@ function WaitlistClaim() {
     queryKey: ["waitlist-offer", token],
     queryFn: () => fetchOffer({ data: { token } }),
   });
-  useTenantFavicon((data as any)?.tenant?.logo_url);
 
   const mut = useMutation({
     mutationFn: () => claim({ data: { token } }),

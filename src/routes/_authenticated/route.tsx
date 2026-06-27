@@ -1,5 +1,4 @@
 import { createFileRoute, Outlet, redirect, useNavigate, Link, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, useSignOut } from "@/lib/auth";
 import {
@@ -51,17 +50,18 @@ function AuthenticatedLayout() {
   const signOut = useSignOut();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Authenticated but no profile row yet — bounce to /auth from an effect (never during render).
-  useEffect(() => {
-    if (!isLoading && !data) navigate({ to: "/auth" });
-  }, [isLoading, data, navigate]);
-
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  if (!data) {
+    // Authenticated but no profile yet — send to onboarding
+    navigate({ to: "/auth" });
+    return null;
   }
 
   const { user, tenant } = data;

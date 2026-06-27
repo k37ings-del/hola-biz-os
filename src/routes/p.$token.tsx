@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
 import { getCustomerPortal } from "@/lib/customer-portal.functions";
-import { useTenantFavicon } from "@/lib/use-tenant-favicon";
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -35,7 +34,6 @@ function PortalPage() {
     queryKey: ["customer-portal", token],
     queryFn: () => fetchFn({ data: { token } }),
   });
-  useTenantFavicon((data as any)?.tenant?.logo_url);
 
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;

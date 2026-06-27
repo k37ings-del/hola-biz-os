@@ -151,7 +151,7 @@ function BrandingPanel({ section }: { section: "branding" | "business" | "hours"
                     placeholder="https://…/logo.png"
                     className="mt-1"
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">Square PNG/SVG works best. This image is also used as the browser tab icon (favicon) on your booking page, customer portal, and waitlist links.</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Square PNG/SVG works best. Upload it anywhere public (e.g. your website) and paste the URL.</p>
                 </div>
               </div>
 
