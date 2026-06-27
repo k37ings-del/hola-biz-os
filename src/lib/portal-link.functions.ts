@@ -63,7 +63,7 @@ async function sendPortalEmail(args: {
 }
 
 export const requestPortalLink = createServerFn({ method: "POST" })
-  .validator((d: unknown) => z.object({ contact: z.string().trim().min(4).max(120) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ contact: z.string().trim().min(4).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: result, error } = await sb.rpc("public_request_portal_link", {

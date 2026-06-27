@@ -13,7 +13,7 @@ async function tenantOf(supabase: any, userId: string) {
 
 export const getCalendarRange = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ from: z.string(), to: z.string() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ from: z.string(), to: z.string() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) return { bookings: [], staff: [] };

@@ -40,7 +40,7 @@ export const listSchedules = createServerFn({ method: "GET" })
 
 export const upsertSchedule = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         staff_id: z.string().uuid(),

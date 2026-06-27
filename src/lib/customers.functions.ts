@@ -71,7 +71,7 @@ export const listCustomers = createServerFn({ method: "GET" })
 
 export const getCustomer = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
@@ -121,7 +121,7 @@ export const getCustomer = createServerFn({ method: "GET" })
 
 export const upsertCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -164,7 +164,7 @@ export const upsertCustomer = createServerFn({ method: "POST" })
 
 export const setCustomerStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z
       .object({
         ids: z.array(z.string().uuid()).min(1),
@@ -186,7 +186,7 @@ export const setCustomerStatus = createServerFn({ method: "POST" })
 
 export const updateCustomerNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ id: z.string().uuid(), notes: z.string().max(4000) }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid(), notes: z.string().max(4000) }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
