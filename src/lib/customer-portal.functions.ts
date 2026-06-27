@@ -10,7 +10,7 @@ function publicClient() {
 }
 
 export const getCustomerPortal = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ token: z.string().min(8).max(80) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ token: z.string().min(8).max(80) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: result, error } = await sb.rpc("public_get_customer_portal", {

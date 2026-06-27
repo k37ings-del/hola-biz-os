@@ -26,7 +26,7 @@ export const WHATSAPP_TEMPLATES = [
 
 export const initiateOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         phone_number: z.string().min(10).max(20),
@@ -62,7 +62,7 @@ export const initiateOnboarding = createServerFn({ method: "POST" })
 
 export const sendWhatsAppMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         to: z.string().min(10).max(20),
@@ -112,7 +112,7 @@ export const sendWhatsAppMessage = createServerFn({ method: "POST" })
 
 export const sendBulkNotifications = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         messages: z
@@ -155,7 +155,7 @@ export const sendBulkNotifications = createServerFn({ method: "POST" })
 
 export const registerWebhook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         webhook_url: z.string().url(),

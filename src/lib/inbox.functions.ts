@@ -40,7 +40,7 @@ export const listConversations = createServerFn({ method: "GET" })
 
 export const getConversation = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
@@ -77,7 +77,7 @@ export const getConversation = createServerFn({ method: "GET" })
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z
       .object({ conversation_id: z.string().uuid(), content: z.string().trim().min(1).max(4000) })
       .parse(d),
@@ -118,7 +118,7 @@ export const sendMessage = createServerFn({ method: "POST" })
 
 export const setConversationStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({ id: z.string().uuid(), status: z.enum(["open", "closed", "archived"]) }).parse(d),
   )
   .handler(async ({ context, data }) => {

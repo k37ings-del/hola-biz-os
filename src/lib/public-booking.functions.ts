@@ -10,7 +10,7 @@ function publicClient() {
 }
 
 export const getBookingPage = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1).max(100) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(100) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: result, error } = await sb.rpc("public_get_booking_page", { _slug: data.slug });
@@ -19,7 +19,7 @@ export const getBookingPage = createServerFn({ method: "GET" })
   });
 
 export const getAvailability = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         tenant_id: z.string().uuid(),
@@ -42,7 +42,7 @@ export const getAvailability = createServerFn({ method: "GET" })
   });
 
 export const createPublicBooking = createServerFn({ method: "POST" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         tenant_id: z.string().uuid(),
