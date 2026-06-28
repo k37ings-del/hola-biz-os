@@ -24,7 +24,9 @@ export const Route = createFileRoute("/book/$slug")({
       { title: loaderData ? `Book with ${loaderData.tenant.name}` : "Book online" },
       { name: "description", content: loaderData ? `Book an appointment with ${loaderData.tenant.name} online.` : "Book an appointment online." },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
+      ...(loaderData?.tenant?.brand_color ? [{ name: "theme-color", content: loaderData.tenant.brand_color }] : []),
     ],
+    links: loaderData?.tenant?.logo_url ? [{ rel: "icon", href: loaderData.tenant.logo_url }] : [],
   }),
   component: PublicBookingPage,
   notFoundComponent: () => (
