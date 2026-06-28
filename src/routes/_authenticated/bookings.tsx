@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Calendar, Plus, Loader2, Save, Link as LinkIcon } from "lucide-react";
+import { Calendar, Plus, Loader2, Save, Link as LinkIcon, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
 import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
+import { deleteBookingOwn } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({ meta: [{ title: "Bookings · Holaweb Business OS" }] }),
@@ -49,11 +50,14 @@ function toLocalInput(iso?: string) {
 
 function BookingsPage() {
   const currency = useTenantCurrency();
+  const { data: me } = useCurrentUser();
+  const canDelete = ["owner", "admin"].includes((me?.user as any)?.role ?? "");
   const qc = useQueryClient();
   const fetchList = useServerFn(listBookings);
   const saveBooking = useServerFn(upsertBooking);
   const updateStatus = useServerFn(setBookingStatus);
   const fetchOptions = useServerFn(bookingFormOptions);
+  const deleteBooking = useServerFn(deleteBookingOwn);
 
   const [filter, setFilter] = useState<string>("all");
   const [editorOpen, setEditorOpen] = useState(false);
@@ -127,6 +131,15 @@ function BookingsPage() {
       qc.invalidateQueries({ queryKey: ["bookings-list"] });
       toast.success("Status updated");
     },
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteBooking({ data: { bookingId: id } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings-list"] });
+      toast.success("Booking deleted");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
   });
 
   const stats = q.data?.stats ?? { upcoming: 0, today: 0, pending: 0, completed_week: 0 };
