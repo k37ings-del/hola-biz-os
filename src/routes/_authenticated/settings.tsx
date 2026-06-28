@@ -383,3 +383,67 @@ function SecretField({ label, value, onChange, secret, placeholder }: { label: s
     </div>
   );
 }
+
+function LogoUploader({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const uploadFn = useServerFn(uploadTenantLogo);
+  const [busy, setBusy] = useState(false);
+  const inputId = "logo-upload-input";
+
+  const handleFile = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be 2 MB or smaller");
+      return;
+    }
+    setBusy(true);
+    try {
+      const buf = await file.arrayBuffer();
+      // Convert to base64 in chunks to avoid call-stack overflow on large files.
+      let binary = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
+      const res = await uploadFn({
+        data: { filename: file.name, content_type: file.type || "image/png", data_base64: base64 },
+      });
+      onChange(res.logo_url);
+      toast.success("Logo uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-1 flex items-center gap-3">
+      <div className="h-16 w-16 rounded-md border bg-white grid place-items-center overflow-hidden shrink-0">
+        {value ? (
+          <img src={value} alt="Logo preview" className="h-full w-full object-contain p-1.5" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground">No logo</span>
+        )}
+      </div>
+      <div className="flex-1">
+        <input
+          id={inputId}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+        />
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => document.getElementById(inputId)?.click()}>
+            {busy ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1" />}
+            {value ? "Replace logo" : "Upload logo"}
+          </Button>
+          {value && (
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>Remove</Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
