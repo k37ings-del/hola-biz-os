@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  Loader2, CreditCard, Lock, Eye, EyeOff, Palette, Clock, Building2, Copy, ExternalLink,
+  Loader2, CreditCard, Lock, Eye, EyeOff, Palette, Clock, Building2, Copy, ExternalLink, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { getPaymentProviders, savePaymentProviders } from "@/lib/payment-providers.functions";
-import { getTenantSettings, saveTenantBranding } from "@/lib/tenant-settings.functions";
+import { getTenantSettings, saveTenantBranding, uploadTenantLogo } from "@/lib/tenant-settings.functions";
 import { COUNTRIES, DEFAULT_BUSINESS_HOURS, DAYS } from "@/lib/constants";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -144,14 +144,19 @@ function BrandingPanel({ section }: { section: "branding" | "business" | "hours"
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Logo URL</Label>
-                  <Input
-                    value={form.logo_url}
-                    onChange={(e) => set({ logo_url: e.target.value })}
-                    placeholder="https://…/logo.png"
-                    className="mt-1"
-                  />
-                  <p className="text-[11px] text-muted-foreground mt-1">Square PNG/SVG works best. Upload it anywhere public (e.g. your website) and paste the URL.</p>
+                  <Label className="text-xs">Logo</Label>
+                  <LogoUploader value={form.logo_url} onChange={(url) => set({ logo_url: url })} />
+                  <div className="mt-2">
+                    <Input
+                      value={form.logo_url}
+                      onChange={(e) => set({ logo_url: e.target.value })}
+                      placeholder="https://your-website.com/logo.png"
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      <strong>Upload</strong> a square PNG/JPG/SVG (max 2&nbsp;MB) — it becomes your booking page logo and favicon.
+                      Or paste an <strong>image link</strong>: upload the image to your website / Google Drive (set sharing to "Anyone with the link") / Imgur, then right-click → "Copy image address" and paste the URL here.
+                    </p>
+                  </div>
                 </div>
               </div>
 
