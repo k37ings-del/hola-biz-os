@@ -145,13 +145,14 @@
   --chart-4: #FFC857;
   --chart-5: #5b6772;
 
-  --sidebar: #1B445F;
-  --sidebar-foreground: #e8eef3;
+  /* Sidebar — Golden Pollen background per HolaWeb brand guide */
+  --sidebar: #e49800;
+  --sidebar-foreground: #040b10;
   --sidebar-primary: #C5283D;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #20536f;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2a5d7a;
+  --sidebar-accent: #c98600;
+  --sidebar-accent-foreground: #040b10;
+  --sidebar-border: #b97b00;
   --sidebar-ring: #C5283D;
 }
 
@@ -229,11 +230,12 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
-  h1, h2, h3, h4, .font-display {
+  h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-display);
+    color: #040b10;
     letter-spacing: -0.01em;
   }
-  .font-subhead {
+  .font-subhead, .text-muted-foreground {
     font-family: var(--font-subhead);
   }
 }
