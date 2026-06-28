@@ -1406,6 +1406,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_booking: { Args: { _booking_id: string }; Returns: Json }
+      admin_delete_tenant: { Args: { _tenant_id: string }; Returns: Json }
       admin_platform_metrics: { Args: never; Returns: Json }
       current_tenant_id: { Args: never; Returns: string }
       current_user_role: {
