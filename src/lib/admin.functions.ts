@@ -121,3 +121,44 @@ export const updateTenantStatus = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+export const deleteTenant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ tenantId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: t } = await supabaseAdmin.from("tenants").select("is_admin_workspace").eq("id", data.tenantId).maybeSingle();
+    if (t?.is_admin_workspace) throw new Error("The admin workspace cannot be deleted");
+    const { error } = await supabaseAdmin.from("tenants").delete().eq("id", data.tenantId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteBookingAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bookingId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("automation_runs").delete().eq("booking_id", data.bookingId);
+    const { error } = await supabaseAdmin.from("bookings").delete().eq("id", data.bookingId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteBookingOwn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ bookingId: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    // Tenant owner/admin can delete their own bookings
+    const { data: u } = await context.supabase
+      .from("users").select("tenant_id, role").eq("supabase_auth_id", context.userId).maybeSingle();
+    if (!u?.tenant_id) throw new Error("No tenant");
+    if (!["owner", "admin"].includes(u.role ?? "")) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("automation_runs").delete().eq("booking_id", data.bookingId);
+    const { error } = await supabaseAdmin.from("bookings").delete().eq("id", data.bookingId).eq("tenant_id", u.tenant_id);
+    if (error) throw error;
+    return { ok: true };
+  });
