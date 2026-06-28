@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  Loader2, CreditCard, Lock, Eye, EyeOff, Palette, Clock, Building2, Copy, ExternalLink,
+  Loader2, CreditCard, Lock, Eye, EyeOff, Palette, Clock, Building2, Copy, ExternalLink, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { getPaymentProviders, savePaymentProviders } from "@/lib/payment-providers.functions";
-import { getTenantSettings, saveTenantBranding } from "@/lib/tenant-settings.functions";
+import { getTenantSettings, saveTenantBranding, uploadTenantLogo } from "@/lib/tenant-settings.functions";
 import { COUNTRIES, DEFAULT_BUSINESS_HOURS, DAYS } from "@/lib/constants";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -144,14 +144,19 @@ function BrandingPanel({ section }: { section: "branding" | "business" | "hours"
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Logo URL</Label>
-                  <Input
-                    value={form.logo_url}
-                    onChange={(e) => set({ logo_url: e.target.value })}
-                    placeholder="https://…/logo.png"
-                    className="mt-1"
-                  />
-                  <p className="text-[11px] text-muted-foreground mt-1">Square PNG/SVG works best. Upload it anywhere public (e.g. your website) and paste the URL.</p>
+                  <Label className="text-xs">Logo</Label>
+                  <LogoUploader value={form.logo_url} onChange={(url) => set({ logo_url: url })} />
+                  <div className="mt-2">
+                    <Input
+                      value={form.logo_url}
+                      onChange={(e) => set({ logo_url: e.target.value })}
+                      placeholder="https://your-website.com/logo.png"
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      <strong>Upload</strong> a square PNG/JPG/SVG (max 2&nbsp;MB) — it becomes your booking page logo and favicon.
+                      Or paste an <strong>image link</strong>: upload the image to your website / Google Drive (set sharing to "Anyone with the link") / Imgur, then right-click → "Copy image address" and paste the URL here.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -374,6 +379,70 @@ function SecretField({ label, value, onChange, secret, placeholder }: { label: s
             {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function LogoUploader({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const uploadFn = useServerFn(uploadTenantLogo);
+  const [busy, setBusy] = useState(false);
+  const inputId = "logo-upload-input";
+
+  const handleFile = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be 2 MB or smaller");
+      return;
+    }
+    setBusy(true);
+    try {
+      const buf = await file.arrayBuffer();
+      // Convert to base64 in chunks to avoid call-stack overflow on large files.
+      let binary = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
+      const res = await uploadFn({
+        data: { filename: file.name, content_type: file.type || "image/png", data_base64: base64 },
+      });
+      onChange(res.logo_url);
+      toast.success("Logo uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-1 flex items-center gap-3">
+      <div className="h-16 w-16 rounded-md border bg-white grid place-items-center overflow-hidden shrink-0">
+        {value ? (
+          <img src={value} alt="Logo preview" className="h-full w-full object-contain p-1.5" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground">No logo</span>
+        )}
+      </div>
+      <div className="flex-1">
+        <input
+          id={inputId}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+        />
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => document.getElementById(inputId)?.click()}>
+            {busy ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1" />}
+            {value ? "Replace logo" : "Upload logo"}
+          </Button>
+          {value && (
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>Remove</Button>
+          )}
+        </div>
       </div>
     </div>
   );
