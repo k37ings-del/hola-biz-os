@@ -102,6 +102,7 @@ function AdminPage() {
                 <TableHead>Plan</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,10 +135,27 @@ function AdminPage() {
                     </Select>
                   </TableCell>
                   <TableCell className="text-xs">{relativeTime(t.created_at)}</TableCell>
+                  <TableCell>
+                    {!t.is_admin_workspace && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        title="Delete company"
+                        onClick={() => {
+                          if (window.confirm(`Permanently delete ${t.name}? All of their bookings, customers and data will be removed. This cannot be undone.`)) {
+                            deleteMut.mutate(t.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {data.tenants.length === 0 && (
-                <TableRow><TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-8">No tenants yet</TableCell></TableRow>
+                <TableRow><TableCell colSpan={11} className="text-center text-sm text-muted-foreground py-8">No tenants yet</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
