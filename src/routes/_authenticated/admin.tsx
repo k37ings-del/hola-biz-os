@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Shield, Building2, Users, Calendar, DollarSign } from "lucide-react";
+import { Loader2, Shield, Building2, Users, Calendar, DollarSign, Trash2 } from "lucide-react";
 import { formatCurrency, relativeTime } from "@/lib/format";
-import { listAllTenants, updateTenantStatus } from "@/lib/admin.functions";
+import { listAllTenants, updateTenantStatus, deleteTenant } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -33,6 +33,7 @@ function AdminPage() {
   const qc = useQueryClient();
   const fetchTenants = useServerFn(listAllTenants);
   const mutateTenant = useServerFn(updateTenantStatus);
+  const removeTenant = useServerFn(deleteTenant);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["all-tenants"],
@@ -46,6 +47,12 @@ function AdminPage() {
       qc.invalidateQueries({ queryKey: ["all-tenants"] });
       toast.success("Tenant updated");
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (tenantId: string) => removeTenant({ data: { tenantId } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); toast.success("Company deleted"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
