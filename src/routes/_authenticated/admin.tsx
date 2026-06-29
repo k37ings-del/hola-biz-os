@@ -54,9 +54,32 @@ function AdminPage() {
 
   const deleteMut = useMutation({
     mutationFn: (tenantId: string) => removeTenant({ data: { tenantId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); toast.success("Company deleted"); },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); },
+    onError: (e: Error) => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); toast.error(e.message); },
   });
+
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+
+  const requestDeleteTenant = (t: any) => {
+    const prev = qc.getQueryData<any>(["all-tenants"]);
+    qc.setQueryData(["all-tenants"], (cur: any) =>
+      cur ? { ...cur, tenants: cur.tenants.filter((x: any) => x.id !== t.id) } : cur,
+    );
+    let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) deleteMut.mutate(t.id); }, 5000);
+    toast(`Deleted ${t.name}`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timer);
+          if (prev) qc.setQueryData(["all-tenants"], prev);
+          toast.success("Delete cancelled");
+        },
+      },
+    });
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
