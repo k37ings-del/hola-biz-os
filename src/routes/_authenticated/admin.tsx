@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Shield, Building2, Users, Calendar, DollarSign, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { formatCurrency, relativeTime } from "@/lib/format";
 import { listAllTenants, updateTenantStatus, deleteTenant } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
