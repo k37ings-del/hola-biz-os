@@ -41,6 +41,14 @@ function PortalPage() {
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
+  const tenantLogo = (data as any)?.tenant?.logo_url ?? null;
+  useEffect(() => {
+    if (!tenantLogo) return;
+    let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+    link.href = tenantLogo;
+  }, [tenantLogo]);
+
   if (error || !data) throw notFound();
 
   const { booking, service, staff, tenant, history } = data as any;
