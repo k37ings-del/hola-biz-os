@@ -218,6 +218,10 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
 
   const results: DispatchResult[] = [];
   results.push(await sendEmail({ to: toEmail, subject, html, tenant, resendKey }));
+  if (staffEmail && staffHtml) {
+    const r = await sendEmail({ to: staffEmail, subject: staffSubject, html: staffHtml, tenant, resendKey });
+    results.push({ ...r, channel: "email_staff" });
+  }
   if (waEnabled && waText) {
     results.push(await sendWhatsApp({ to: toPhone, text: waText }));
   }
