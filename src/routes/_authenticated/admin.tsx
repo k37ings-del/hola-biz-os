@@ -167,11 +167,7 @@ function AdminPage() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         title="Delete company"
-                        onClick={() => {
-                          if (window.confirm(`Permanently delete ${t.name}? All of their bookings, customers and data will be removed. This cannot be undone.`)) {
-                            deleteMut.mutate(t.id);
-                          }
-                        }}
+                        onClick={() => setDeleteTarget(t)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -186,6 +182,16 @@ function AdminPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        title={`Delete ${deleteTarget?.name ?? "company"}?`}
+        description="All of their bookings, customers, and data will be permanently removed. You'll have 5 seconds to undo from the toast."
+        confirmLabel="Delete company"
+        destructive
+        onConfirm={() => { if (deleteTarget) { requestDeleteTenant(deleteTarget); setDeleteTarget(null); } }}
+      />
     </div>
   );
 }
