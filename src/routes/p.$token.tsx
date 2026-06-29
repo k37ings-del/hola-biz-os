@@ -18,10 +18,12 @@ export const Route = createFileRoute("/p/$token")({
   }),
   component: PortalPage,
   notFoundComponent: () => (
-    <div className="min-h-screen grid place-items-center px-4 text-center">
-      <div>
-        <h1 className="text-2xl font-display font-semibold">Booking not found</h1>
-        <p className="text-sm text-muted-foreground mt-2">This portal link is no longer valid.</p>
+    <div className="min-h-screen grid place-items-center px-4 text-center bg-background">
+      <div className="max-w-sm">
+        <h1 className="text-2xl font-display font-semibold">This link no longer works</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          The booking portal link is invalid or has expired. Please check the most recent confirmation email or contact the business directly.
+        </p>
       </div>
     </div>
   ),
