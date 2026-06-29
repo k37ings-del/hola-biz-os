@@ -157,3 +157,64 @@ export const updateCustomerNotes = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+const importRowSchema = z.object({
+  display_name: z.string().trim().min(1).max(120),
+  wa_phone: z.string().trim().max(32).nullable().optional(),
+  email: z.string().trim().email().max(255).nullable().optional().or(z.literal("").transform(() => null)),
+  notes: z.string().max(2000).nullable().optional(),
+});
+
+export const bulkImportCustomers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      rows: z.array(importRowSchema).min(1).max(2000),
+    }).parse(d)
+  )
+  .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
+
+    // Load existing matches once
+    const emails = data.rows.map((r) => r.email?.toLowerCase()).filter(Boolean) as string[];
+    const phones = data.rows.map((r) => r.wa_phone).filter(Boolean) as string[];
+    const { data: existing } = await context.supabase
+      .from("customers")
+      .select("id, email, wa_phone")
+      .eq("tenant_id", tenantId)
+      .or([
+        emails.length ? `email.in.(${emails.map((e) => `"${e}"`).join(",")})` : "",
+        phones.length ? `wa_phone.in.(${phones.map((p) => `"${p}"`).join(",")})` : "",
+      ].filter(Boolean).join(","));
+    const byEmail = new Map<string, string>();
+    const byPhone = new Map<string, string>();
+    (existing ?? []).forEach((c: any) => {
+      if (c.email) byEmail.set(c.email.toLowerCase(), c.id);
+      if (c.wa_phone) byPhone.set(c.wa_phone, c.id);
+    });
+
+    let created = 0, skipped = 0;
+    const toInsert: any[] = [];
+    for (const r of data.rows) {
+      const emailKey = r.email ? r.email.toLowerCase() : null;
+      const phoneKey = r.wa_phone || null;
+      if ((emailKey && byEmail.has(emailKey)) || (phoneKey && byPhone.has(phoneKey))) { skipped++; continue; }
+      toInsert.push({
+        tenant_id: tenantId,
+        display_name: r.display_name,
+        email: emailKey,
+        wa_phone: phoneKey,
+        notes: r.notes ?? null,
+        status: "active",
+      });
+      if (emailKey) byEmail.set(emailKey, "pending");
+      if (phoneKey) byPhone.set(phoneKey, "pending");
+    }
+    if (toInsert.length) {
+      const { error } = await context.supabase.from("customers").insert(toInsert);
+      if (error) throw error;
+      created = toInsert.length;
+    }
+    return { ok: true, created, skipped, total: data.rows.length };
+  });
