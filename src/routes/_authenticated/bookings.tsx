@@ -63,6 +63,7 @@ function BookingsPage() {
   const [filter, setFilter] = useState<string>("all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
 
   const q = useQuery({ queryKey: ["bookings-list"], queryFn: () => fetchList() });
   const optionsQ = useQuery({ queryKey: ["bookings-options"], queryFn: () => fetchOptions(), enabled: editorOpen });
