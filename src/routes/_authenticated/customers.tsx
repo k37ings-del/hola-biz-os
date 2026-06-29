@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save } from "lucide-react";
+import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,10 @@ import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
-import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes } from "@/lib/customers.functions";
+import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, bulkImportCustomers } from "@/lib/customers.functions";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({ meta: [{ title: "Customers · Holaweb Business OS" }] }),
@@ -135,9 +138,12 @@ function CustomersPage() {
         title="Customers"
         description="Everyone who has ever messaged or booked through this business."
         actions={
-          <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1.5" /> Add customer
-          </Button>
+          <div className="flex items-center gap-2">
+            <ImportCustomersButton onImported={() => qc.invalidateQueries({ queryKey: ["customers"] })} />
+            <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Add customer
+            </Button>
+          </div>
         }
       />
 
@@ -497,3 +503,119 @@ function CustomerEditor({
 }
 
 void MessageSquare;
+
+function parseCsv(text: string): Record<string, string>[] {
+  // Tiny CSV parser: handles quoted fields and commas
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ",") { cur.push(field); field = ""; }
+      else if (c === "\n") { cur.push(field); rows.push(cur); cur = []; field = ""; }
+      else if (c === "\r") { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  const headers = (rows.shift() ?? []).map((h) => h.trim().toLowerCase());
+  return rows
+    .filter((r) => r.some((v) => v.trim().length))
+    .map((r) => Object.fromEntries(headers.map((h, i) => [h, (r[i] ?? "").trim()])));
+}
+
+function ImportCustomersButton({ onImported }: { onImported: () => void }) {
+  const importFn = useServerFn(bulkImportCustomers);
+  const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<Array<{ display_name: string; email?: string | null; wa_phone?: string | null; notes?: string | null }>>([]);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { toast.error("CSV must be under 2MB"); return; }
+    setFileName(f.name);
+    const text = await f.text();
+    const rows = parseCsv(text);
+    const mapped = rows.map((r) => ({
+      display_name: r.name || r.display_name || r["full name"] || "",
+      email: r.email || null,
+      wa_phone: r.phone || r.wa_phone || r.whatsapp || r["whatsapp number"] || null,
+      notes: r.notes || null,
+    })).filter((r) => r.display_name);
+    if (!mapped.length) { toast.error("No valid rows found. Required column: name"); return; }
+    setPreview(mapped.slice(0, 2000));
+  };
+
+  const submit = async () => {
+    if (!preview.length) return;
+    setBusy(true);
+    try {
+      const res = await importFn({ data: { rows: preview } });
+      toast.success(`Imported ${res.created} new customer${res.created === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped (duplicates)` : ""}`);
+      onImported();
+      setOpen(false);
+      setPreview([]);
+      setFileName(null);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Import failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <Upload className="h-4 w-4 mr-1.5" /> Import CSV
+      </Button>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setPreview([]); setFileName(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display">Bulk import customers</DialogTitle>
+            <DialogDescription>
+              Upload a CSV with a <code>name</code> column (required) and any of <code>email</code>, <code>phone</code>, <code>notes</code>. Up to 2000 rows. Duplicates (matched by email or phone) are skipped.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input type="file" accept=".csv,text/csv" onChange={onFile} />
+            {fileName && (
+              <div className="text-xs text-muted-foreground">
+                <strong>{fileName}</strong> — {preview.length} rows ready
+              </div>
+            )}
+            {preview.length > 0 && (
+              <div className="max-h-48 overflow-auto rounded-md border text-xs">
+                <table className="w-full">
+                  <thead className="bg-muted/40 sticky top-0">
+                    <tr><th className="text-left p-1.5">Name</th><th className="text-left p-1.5">Email</th><th className="text-left p-1.5">Phone</th></tr>
+                  </thead>
+                  <tbody>
+                    {preview.slice(0, 50).map((r, i) => (
+                      <tr key={i} className="border-t"><td className="p-1.5">{r.display_name}</td><td className="p-1.5 text-muted-foreground">{r.email ?? ""}</td><td className="p-1.5 text-muted-foreground">{r.wa_phone ?? ""}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+                {preview.length > 50 && <div className="p-1.5 text-center text-muted-foreground">…and {preview.length - 50} more</div>}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={submit} disabled={busy || preview.length === 0}>
+              {busy && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />} Import {preview.length || ""} customers
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

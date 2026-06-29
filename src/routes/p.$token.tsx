@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,10 +19,12 @@ export const Route = createFileRoute("/p/$token")({
   }),
   component: PortalPage,
   notFoundComponent: () => (
-    <div className="min-h-screen grid place-items-center px-4 text-center">
-      <div>
-        <h1 className="text-2xl font-display font-semibold">Booking not found</h1>
-        <p className="text-sm text-muted-foreground mt-2">This portal link is no longer valid.</p>
+    <div className="min-h-screen grid place-items-center px-4 text-center bg-background">
+      <div className="max-w-sm">
+        <h1 className="text-2xl font-display font-semibold">This link no longer works</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          The booking portal link is invalid or has expired. Please check the most recent confirmation email or contact the business directly.
+        </p>
       </div>
     </div>
   ),
@@ -38,6 +41,14 @@ function PortalPage() {
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
+  const tenantLogo = (data as any)?.tenant?.logo_url ?? null;
+  useEffect(() => {
+    if (!tenantLogo) return;
+    let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+    link.href = tenantLogo;
+  }, [tenantLogo]);
+
   if (error || !data) throw notFound();
 
   const { booking, service, staff, tenant, history } = data as any;

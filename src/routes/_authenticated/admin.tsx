@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Shield, Building2, Users, Calendar, DollarSign, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { formatCurrency, relativeTime } from "@/lib/format";
 import { listAllTenants, updateTenantStatus, deleteTenant } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,9 +54,32 @@ function AdminPage() {
 
   const deleteMut = useMutation({
     mutationFn: (tenantId: string) => removeTenant({ data: { tenantId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); toast.success("Company deleted"); },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); },
+    onError: (e: Error) => { qc.invalidateQueries({ queryKey: ["all-tenants"] }); toast.error(e.message); },
   });
+
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+
+  const requestDeleteTenant = (t: any) => {
+    const prev = qc.getQueryData<any>(["all-tenants"]);
+    qc.setQueryData(["all-tenants"], (cur: any) =>
+      cur ? { ...cur, tenants: cur.tenants.filter((x: any) => x.id !== t.id) } : cur,
+    );
+    let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) deleteMut.mutate(t.id); }, 5000);
+    toast(`Deleted ${t.name}`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timer);
+          if (prev) qc.setQueryData(["all-tenants"], prev);
+          toast.success("Delete cancelled");
+        },
+      },
+    });
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-[40vh]"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -142,11 +167,7 @@ function AdminPage() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         title="Delete company"
-                        onClick={() => {
-                          if (window.confirm(`Permanently delete ${t.name}? All of their bookings, customers and data will be removed. This cannot be undone.`)) {
-                            deleteMut.mutate(t.id);
-                          }
-                        }}
+                        onClick={() => setDeleteTarget(t)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -161,6 +182,16 @@ function AdminPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        title={`Delete ${deleteTarget?.name ?? "company"}?`}
+        description="All of their bookings, customers, and data will be permanently removed. You'll have 5 seconds to undo from the toast."
+        confirmLabel="Delete company"
+        destructive
+        onConfirm={() => { if (deleteTarget) { requestDeleteTenant(deleteTarget); setDeleteTarget(null); } }}
+      />
     </div>
   );
 }

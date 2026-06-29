@@ -17,6 +17,7 @@ import { SlideOver } from "@/components/shell/SlideOver";
 import { StatusBadge } from "@/components/shell/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
 import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
 import { deleteBookingOwn } from "@/lib/admin.functions";
@@ -62,6 +63,7 @@ function BookingsPage() {
   const [filter, setFilter] = useState<string>("all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
 
   const q = useQuery({ queryKey: ["bookings-list"], queryFn: () => fetchList() });
   const optionsQ = useQuery({ queryKey: ["bookings-options"], queryFn: () => fetchOptions(), enabled: editorOpen });
@@ -137,10 +139,34 @@ function BookingsPage() {
     mutationFn: (id: string) => deleteBooking({ data: { bookingId: id } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings-list"] });
-      toast.success("Booking deleted");
     },
-    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
+    onError: (e: any) => {
+      qc.invalidateQueries({ queryKey: ["bookings-list"] });
+      toast.error(e.message ?? "Delete failed");
+    },
   });
+
+  const requestDeleteBooking = (b: any) => {
+    // Optimistic remove + 5s undo
+    const prev = qc.getQueryData<any>(["bookings-list"]);
+    qc.setQueryData(["bookings-list"], (cur: any) =>
+      cur ? { ...cur, bookings: cur.bookings.filter((x: any) => x.id !== b.id) } : cur,
+    );
+    let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) deleteMut.mutate(b.id); }, 5000);
+    toast(`Booking ${b.ref_code} deleted`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timer);
+          if (prev) qc.setQueryData(["bookings-list"], prev);
+          toast.success("Delete cancelled");
+        },
+      },
+    });
+  };
 
   const stats = q.data?.stats ?? { upcoming: 0, today: 0, pending: 0, completed_week: 0 };
 
@@ -233,11 +259,7 @@ function BookingsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           title="Delete booking"
-                          onClick={() => {
-                            if (window.confirm(`Permanently delete booking ${b.ref_code}? This cannot be undone.`)) {
-                              deleteMut.mutate(b.id);
-                            }
-                          }}
+                          onClick={() => setDeleteTarget(b)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -337,6 +359,16 @@ function BookingsPage() {
           </div>
         )}
       </SlideOver>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        title={`Delete booking ${deleteTarget?.ref_code ?? ""}?`}
+        description="The booking will be removed immediately. You'll have 5 seconds to undo from the toast."
+        confirmLabel="Delete booking"
+        destructive
+        onConfirm={() => { if (deleteTarget) { requestDeleteBooking(deleteTarget); setDeleteTarget(null); } }}
+      />
     </div>
   );
 }
