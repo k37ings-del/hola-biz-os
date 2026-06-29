@@ -359,6 +359,16 @@ function BookingsPage() {
           </div>
         )}
       </SlideOver>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        title={`Delete booking ${deleteTarget?.ref_code ?? ""}?`}
+        description="The booking will be removed immediately. You'll have 5 seconds to undo from the toast."
+        confirmLabel="Delete booking"
+        destructive
+        onConfirm={() => { if (deleteTarget) { requestDeleteBooking(deleteTarget); setDeleteTarget(null); } }}
+      />
     </div>
   );
 }
