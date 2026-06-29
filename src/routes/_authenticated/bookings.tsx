@@ -139,10 +139,34 @@ function BookingsPage() {
     mutationFn: (id: string) => deleteBooking({ data: { bookingId: id } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings-list"] });
-      toast.success("Booking deleted");
     },
-    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
+    onError: (e: any) => {
+      qc.invalidateQueries({ queryKey: ["bookings-list"] });
+      toast.error(e.message ?? "Delete failed");
+    },
   });
+
+  const requestDeleteBooking = (b: any) => {
+    // Optimistic remove + 5s undo
+    const prev = qc.getQueryData<any>(["bookings-list"]);
+    qc.setQueryData(["bookings-list"], (cur: any) =>
+      cur ? { ...cur, bookings: cur.bookings.filter((x: any) => x.id !== b.id) } : cur,
+    );
+    let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) deleteMut.mutate(b.id); }, 5000);
+    toast(`Booking ${b.ref_code} deleted`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timer);
+          if (prev) qc.setQueryData(["bookings-list"], prev);
+          toast.success("Delete cancelled");
+        },
+      },
+    });
+  };
 
   const stats = q.data?.stats ?? { upcoming: 0, today: 0, pending: 0, completed_week: 0 };
 
