@@ -17,6 +17,7 @@ import { SlideOver } from "@/components/shell/SlideOver";
 import { StatusBadge } from "@/components/shell/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
 import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
 import { deleteBookingOwn } from "@/lib/admin.functions";
