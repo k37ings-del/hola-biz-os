@@ -138,9 +138,12 @@ function CustomersPage() {
         title="Customers"
         description="Everyone who has ever messaged or booked through this business."
         actions={
-          <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1.5" /> Add customer
-          </Button>
+          <div className="flex items-center gap-2">
+            <ImportCustomersButton onImported={() => qc.invalidateQueries({ queryKey: ["customers"] })} />
+            <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Add customer
+            </Button>
+          </div>
         }
       />
 
