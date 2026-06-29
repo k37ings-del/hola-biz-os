@@ -78,23 +78,18 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
   let booking: any = null;
   let tenant: any = null;
   let service: any = null;
-  let staff: any = null;
 
   if (run.booking_id) {
     const { data } = await sb.from("bookings").select("*").eq("id", run.booking_id).maybeSingle();
     booking = data;
   }
   if (run.tenant_id) {
-    const { data } = await sb.from("tenants").select("id, name, slug, email, brand_color, logo_url").eq("id", run.tenant_id).maybeSingle();
+    const { data } = await sb.from("tenants").select("id, name, slug, email, brand_color").eq("id", run.tenant_id).maybeSingle();
     tenant = data;
   }
   if (booking?.service_id) {
     const { data } = await sb.from("services").select("name, duration_minutes").eq("id", booking.service_id).maybeSingle();
     service = data;
-  }
-  if (booking?.staff_id) {
-    const { data } = await sb.from("staff").select("name, email").eq("id", booking.staff_id).maybeSingle();
-    staff = data;
   }
 
   const brand = tenant?.brand_color || "#C5283D";
@@ -111,10 +106,8 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
   let subject = "";
   let html = "";
   let waText = "";
+  // Channels: email always; WhatsApp for booking_confirmed + reminders only
   let waEnabled = false;
-  let staffEmail: string | null = null;
-  let staffSubject = "";
-  let staffHtml = "";
 
   switch (run.trigger_type) {
     case "booking_confirmed":
@@ -125,7 +118,7 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
       subject = `Your booking with ${tenant?.name ?? "us"} is confirmed`;
       html = renderBookingEmail({
         title: "You're booked! 🎉",
-        intro: `Thanks for booking with <strong>${escapeHtml(tenant?.name ?? "us")}</strong>. Your appointment is locked in — no payment needed to hold the slot.`,
+        intro: `Thanks for booking with <strong>${escapeHtml(tenant?.name ?? "us")}</strong>.`,
         customerName: booking?.customer_name,
         serviceName: service?.name,
         whenStr,
@@ -135,22 +128,6 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
         ctaLabel: "View my booking",
       });
       waText = `Hi ${booking?.customer_name ?? ""}, your booking with ${tenant?.name ?? "us"} is confirmed ✅\n${service?.name ? service.name + " — " : ""}${whenStr}\nRef: ${booking?.ref_code ?? ""}${portalUrl ? `\nManage: ${portalUrl}` : ""}`;
-
-      // Staff notification (if booking is assigned to a staff member with email)
-      if (staff?.email) {
-        staffEmail = staff.email;
-        staffSubject = `New booking: ${booking?.customer_name ?? "Customer"} — ${whenStr}`;
-        staffHtml = renderBookingEmail({
-          title: "You have a new booking 📅",
-          intro: `<strong>${escapeHtml(booking?.customer_name ?? "A customer")}</strong> just booked you${service?.name ? ` for <strong>${escapeHtml(service.name)}</strong>` : ""}.`,
-          customerName: booking?.customer_name,
-          serviceName: service?.name,
-          whenStr,
-          refCode: booking?.ref_code,
-          portalUrl: null,
-          brand,
-        });
-      }
       break;
     }
     case "before_appointment":
@@ -218,10 +195,6 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
 
   const results: DispatchResult[] = [];
   results.push(await sendEmail({ to: toEmail, subject, html, tenant, resendKey }));
-  if (staffEmail && staffHtml) {
-    const r = await sendEmail({ to: staffEmail, subject: staffSubject, html: staffHtml, tenant, resendKey });
-    results.push({ ...r, channel: "email_staff" });
-  }
   if (waEnabled && waText) {
     results.push(await sendWhatsApp({ to: toPhone, text: waText }));
   }

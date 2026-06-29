@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { createFileRoute, Outlet, redirect, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, useSignOut } from "@/lib/auth";
@@ -67,20 +66,6 @@ function AuthenticatedLayout() {
 
   const { user, tenant } = data;
   const canSeeAdmin = user.admin_access && (user.role === "owner" || user.role === "admin");
-  const tenantLogo = (tenant as any).logo_url || null;
-  const displayLogo = tenantLogo || holawebLogo.url;
-
-  // Dynamic favicon: tenant logo if uploaded, otherwise default
-  useEffect(() => {
-    const href = tenantLogo || holawebLogo.url;
-    let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "icon";
-      document.head.appendChild(link);
-    }
-    link.href = href;
-  }, [tenantLogo]);
 
   return (
     <SidebarProvider>
@@ -88,8 +73,8 @@ function AuthenticatedLayout() {
         <Sidebar collapsible="icon">
           <SidebarHeader className="border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-2 py-3">
-              <div className="h-12 w-12 rounded-md bg-white flex items-center justify-center shrink-0 p-1.5 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-1 overflow-hidden">
-                <img src={displayLogo} alt={tenant.name} className="h-full w-auto object-contain" />
+              <div className="h-40 w-40 rounded-md bg-white flex items-center justify-center shrink-0 p-2 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-1">
+                <img src={holawebLogo.url} alt="Holaweb" className="h-full w-auto" />
               </div>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="text-sm font-semibold truncate text-sidebar-foreground">{tenant.name}</p>
