@@ -337,6 +337,37 @@ function BookingsPage() {
           </div>
         )}
       </SlideOver>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title={`Delete booking ${confirmDelete?.ref ?? ""}?`}
+        description="You'll have 6 seconds to undo before it's permanently removed."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          const target = confirmDelete;
+          if (!target) return;
+          setConfirmDelete(null);
+          const timer = setTimeout(() => {
+            pendingDeletes.current.delete(target.id);
+            deleteMut.mutate(target.id);
+          }, 6000);
+          pendingDeletes.current.set(target.id, timer);
+          toast(`Booking ${target.ref} will be deleted`, {
+            duration: 6000,
+            action: {
+              label: "Undo",
+              onClick: () => {
+                const t = pendingDeletes.current.get(target.id);
+                if (t) clearTimeout(t);
+                pendingDeletes.current.delete(target.id);
+                toast.success("Deletion cancelled");
+              },
+            },
+          });
+        }}
+      />
     </div>
   );
 }
