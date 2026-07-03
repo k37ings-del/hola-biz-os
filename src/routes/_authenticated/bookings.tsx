@@ -64,6 +64,8 @@ function BookingsPage() {
   const [filter, setFilter] = useState<string>("all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; ref: string } | null>(null);
+  const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const q = useQuery({ queryKey: ["bookings-list"], queryFn: () => fetchList() });
   const optionsQ = useQuery({ queryKey: ["bookings-options"], queryFn: () => fetchOptions(), enabled: editorOpen });
