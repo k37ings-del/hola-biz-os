@@ -69,6 +69,7 @@ import {
   upsertStaff,
   setStaffActive,
   deleteStaff,
+  uploadStaffPhoto,
 } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/staff")({
