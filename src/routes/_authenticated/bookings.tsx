@@ -237,11 +237,7 @@ function BookingsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           title="Delete booking"
-                          onClick={() => {
-                            if (window.confirm(`Permanently delete booking ${b.ref_code}? This cannot be undone.`)) {
-                              deleteMut.mutate(b.id);
-                            }
-                          }}
+                          onClick={() => setConfirmDelete({ id: b.id, ref: b.ref_code })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
