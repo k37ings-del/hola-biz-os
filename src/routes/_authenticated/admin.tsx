@@ -36,6 +36,8 @@ function AdminPage() {
   const fetchTenants = useServerFn(listAllTenants);
   const mutateTenant = useServerFn(updateTenantStatus);
   const removeTenant = useServerFn(deleteTenant);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["all-tenants"],
