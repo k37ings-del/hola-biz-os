@@ -91,6 +91,11 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     const { data } = await sb.from("services").select("name, duration_minutes").eq("id", booking.service_id).maybeSingle();
     service = data;
   }
+  let staff: any = null;
+  if (booking?.staff_id) {
+    const { data } = await sb.from("staff").select("name, email").eq("id", booking.staff_id).maybeSingle();
+    staff = data;
+  }
 
   const brand = tenant?.brand_color || "#C5283D";
   const portalUrl = booking?.portal_token
