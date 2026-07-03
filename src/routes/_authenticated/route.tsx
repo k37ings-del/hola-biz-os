@@ -67,15 +67,17 @@ function AuthenticatedLayout() {
 
   const { user, tenant } = data;
   const canSeeAdmin = user.admin_access && (user.role === "owner" || user.role === "admin");
+  const brandLogo = (tenant as any).logo_url || holawebLogo.url;
 
   return (
     <SidebarProvider>
+      <FaviconSetter href={brandLogo} />
       <div className="min-h-screen flex w-full bg-background">
         <Sidebar collapsible="icon">
           <SidebarHeader className="border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-2 py-3">
               <div className="h-40 w-40 rounded-md bg-white flex items-center justify-center shrink-0 p-2 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-1">
-                <img src={holawebLogo.url} alt="Holaweb" className="h-full w-auto" />
+                <img src={brandLogo} alt={tenant.name} className="h-full w-auto object-contain" />
               </div>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="text-sm font-semibold truncate text-sidebar-foreground">{tenant.name}</p>
