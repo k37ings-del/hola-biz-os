@@ -146,11 +146,7 @@ function AdminPage() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         title="Delete company"
-                        onClick={() => {
-                          if (window.confirm(`Permanently delete ${t.name}? All of their bookings, customers and data will be removed. This cannot be undone.`)) {
-                            deleteMut.mutate(t.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDelete({ id: t.id, name: t.name })}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
