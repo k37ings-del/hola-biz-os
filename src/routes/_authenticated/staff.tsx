@@ -770,3 +770,44 @@ function StaffBookings({ staffId, bookings }: { staffId: string; bookings: any[]
     </div>
   );
 }
+
+function PhotoUploader({ staffId, value, onChange }: { staffId?: string; value: string; onChange: (url: string) => void }) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const uploadFn = useServerFn(uploadStaffPhoto);
+  const [busy, setBusy] = React.useState(false);
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error("Photo must be under 2 MB");
+    setBusy(true);
+    try {
+      const buf = await file.arrayBuffer();
+      let bin = "";
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const b64 = btoa(bin);
+      const res = await uploadFn({ data: { staff_id: staffId, filename: file.name, content_type: file.type || "image/png", data_base64: b64 } });
+      onChange(res.photo_url);
+      toast.success("Photo uploaded");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={onFile} />
+      <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
+        {busy ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : null}
+        {value ? "Replace photo" : "Upload photo"}
+      </Button>
+      {value && (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>Remove</Button>
+      )}
+    </div>
+  );
+}
