@@ -537,13 +537,17 @@ function StaffPage() {
 
             <TabsContent value="profile" className="space-y-3 pt-4">
               <div className="flex items-center gap-3">
-                <InitialsAvatar name={editorForm.name} seed={selected.id} size="lg" />
-                <div className="flex-1">
-                  <Label className="text-xs">Profile photo URL</Label>
-                  <Input
+                {editorForm.photo_url ? (
+                  <img src={editorForm.photo_url} alt={editorForm.name} className="h-14 w-14 rounded-full object-cover" />
+                ) : (
+                  <InitialsAvatar name={editorForm.name} seed={selected.id} size="lg" />
+                )}
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs">Profile photo</Label>
+                  <PhotoUploader
+                    staffId={editorForm.id}
                     value={editorForm.photo_url}
-                    onChange={(e) => setEditorForm({ ...editorForm, photo_url: e.target.value })}
-                    placeholder="https://…"
+                    onChange={(url) => setEditorForm({ ...editorForm, photo_url: url })}
                   />
                 </div>
               </div>
