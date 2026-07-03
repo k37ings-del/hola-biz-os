@@ -3,7 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save } from "lucide-react";
+import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save, Upload } from "lucide-react";
+import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
-import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes } from "@/lib/customers.functions";
+import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({ meta: [{ title: "Customers · Holaweb Business OS" }] }),
@@ -135,9 +136,12 @@ function CustomersPage() {
         title="Customers"
         description="Everyone who has ever messaged or booked through this business."
         actions={
-          <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1.5" /> Add customer
-          </Button>
+          <div className="flex items-center gap-2">
+            <CsvImportButton onDone={() => qc.invalidateQueries({ queryKey: ["customers-list"] })} />
+            <Button onClick={() => { setEditorCustomer({ display_name: "", wa_phone: "", email: "", notes: "", status: "active" }); setEditorOpen(true); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Add customer
+            </Button>
+          </div>
         }
       />
 
@@ -497,3 +501,76 @@ function CustomerEditor({
 }
 
 void MessageSquare;
+
+function parseCsv(text: string): Array<Record<string, string>> {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n").filter((l) => l.trim().length > 0);
+  if (lines.length < 2) return [];
+  const split = (line: string) => {
+    const out: string[] = [];
+    let cur = "";
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQ) {
+        if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (c === '"') { inQ = false; }
+        else { cur += c; }
+      } else {
+        if (c === '"') inQ = true;
+        else if (c === ",") { out.push(cur); cur = ""; }
+        else cur += c;
+      }
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  };
+  const headers = split(lines[0]).map((h) => h.toLowerCase().replace(/\s+/g, "_"));
+  return lines.slice(1).map((line) => {
+    const cells = split(line);
+    const row: Record<string, string> = {};
+    headers.forEach((h, i) => { row[h] = cells[i] ?? ""; });
+    return row;
+  });
+}
+
+function CsvImportButton({ onDone }: { onDone: () => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const importFn = useServerFn(importCustomersCSV);
+  const mut = useMutation({
+    mutationFn: (rows: any[]) => importFn({ data: { rows } }),
+    onSuccess: (res) => {
+      toast.success(`Imported ${res.imported} customers${res.skipped ? ` · ${res.skipped} duplicates skipped` : ""}`);
+      onDone();
+    },
+    onError: (e: any) => toast.error(e.message ?? "Import failed"),
+  });
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error("CSV must be under 2 MB");
+    const text = await file.text();
+    const raw = parseCsv(text);
+    const rows = raw
+      .map((r) => ({
+        display_name: (r.display_name || r.name || r.full_name || "").trim(),
+        email: (r.email || "").trim() || null,
+        wa_phone: (r.wa_phone || r.phone || r.whatsapp || r.mobile || "").trim() || null,
+        notes: (r.notes || "").trim() || null,
+      }))
+      .filter((r) => r.display_name && (r.email || r.wa_phone));
+    if (!rows.length) return toast.error("No valid rows. Need a name column plus email or phone.");
+    mut.mutate(rows);
+  };
+
+  return (
+    <>
+      <input ref={ref} type="file" accept=".csv,text/csv" hidden onChange={onFile} />
+      <Button variant="outline" onClick={() => ref.current?.click()} disabled={mut.isPending}>
+        {mut.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+        Import CSV
+      </Button>
+    </>
+  );
+}

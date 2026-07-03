@@ -17,6 +17,8 @@ import { SlideOver } from "@/components/shell/SlideOver";
 import { StatusBadge } from "@/components/shell/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SkeletonTable } from "@/components/shell/SkeletonTable";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
+import { useRef } from "react";
 import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format";
 import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
 import { deleteBookingOwn } from "@/lib/admin.functions";
@@ -62,6 +64,8 @@ function BookingsPage() {
   const [filter, setFilter] = useState<string>("all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState<FormState | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; ref: string } | null>(null);
+  const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const q = useQuery({ queryKey: ["bookings-list"], queryFn: () => fetchList() });
   const optionsQ = useQuery({ queryKey: ["bookings-options"], queryFn: () => fetchOptions(), enabled: editorOpen });
@@ -233,11 +237,7 @@ function BookingsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           title="Delete booking"
-                          onClick={() => {
-                            if (window.confirm(`Permanently delete booking ${b.ref_code}? This cannot be undone.`)) {
-                              deleteMut.mutate(b.id);
-                            }
-                          }}
+                          onClick={() => setConfirmDelete({ id: b.id, ref: b.ref_code })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -337,6 +337,37 @@ function BookingsPage() {
           </div>
         )}
       </SlideOver>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title={`Delete booking ${confirmDelete?.ref ?? ""}?`}
+        description="You'll have 6 seconds to undo before it's permanently removed."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          const target = confirmDelete;
+          if (!target) return;
+          setConfirmDelete(null);
+          const timer = setTimeout(() => {
+            pendingDeletes.current.delete(target.id);
+            deleteMut.mutate(target.id);
+          }, 6000);
+          pendingDeletes.current.set(target.id, timer);
+          toast(`Booking ${target.ref} will be deleted`, {
+            duration: 6000,
+            action: {
+              label: "Undo",
+              onClick: () => {
+                const t = pendingDeletes.current.get(target.id);
+                if (t) clearTimeout(t);
+                pendingDeletes.current.delete(target.id);
+                toast.success("Deletion cancelled");
+              },
+            },
+          });
+        }}
+      />
     </div>
   );
 }

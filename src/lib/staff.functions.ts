@@ -166,3 +166,44 @@ export const deleteStaff = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+const ALLOWED_PHOTO_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+
+export const uploadStaffPhoto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      staff_id: z.string().uuid().optional(),
+      filename: z.string().min(1).max(120),
+      content_type: z.string().min(3).max(100),
+      data_base64: z.string().min(8).max(3_500_000),
+    }).parse(d)
+  )
+  .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
+    if (!ALLOWED_PHOTO_TYPES.has(data.content_type)) throw new Error("Use a PNG, JPG or WEBP image");
+    const bytes = Buffer.from(data.data_base64, "base64");
+    if (bytes.byteLength === 0) throw new Error("File is empty");
+    if (bytes.byteLength > MAX_PHOTO_BYTES) throw new Error("Photo must be 2 MB or smaller");
+
+    const ext = (data.filename.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const objectPath = `${tenantId}/${data.staff_id ?? "new"}-${Date.now()}.${ext}`;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("staff-photos")
+      .upload(objectPath, bytes, { contentType: data.content_type, upsert: true });
+    if (upErr) throw upErr;
+
+    const { data: signed, error: signErr } = await supabaseAdmin.storage
+      .from("staff-photos")
+      .createSignedUrl(objectPath, 60 * 60 * 24 * 365);
+    if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Could not sign URL");
+
+    if (data.staff_id) {
+      await supabaseAdmin.from("staff").update({ photo_url: signed.signedUrl }).eq("id", data.staff_id).eq("tenant_id", tenantId);
+    }
+    return { photo_url: signed.signedUrl };
+  });

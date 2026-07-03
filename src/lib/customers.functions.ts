@@ -157,3 +157,63 @@ export const updateCustomerNotes = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+export const importCustomersCSV = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      rows: z
+        .array(
+          z.object({
+            display_name: z.string().trim().min(1).max(120),
+            email: z.string().trim().max(255).optional().nullable(),
+            wa_phone: z.string().trim().max(40).optional().nullable(),
+            notes: z.string().trim().max(2000).optional().nullable(),
+          })
+        )
+        .min(1)
+        .max(2000),
+    }).parse(d)
+  )
+  .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
+
+    // Fetch existing to de-dupe on email/phone
+    const { data: existing } = await context.supabase
+      .from("customers")
+      .select("id, email, wa_phone")
+      .eq("tenant_id", tenantId);
+    const emails = new Set((existing ?? []).map((c: any) => (c.email ?? "").toLowerCase()).filter(Boolean));
+    const phones = new Set((existing ?? []).map((c: any) => (c.wa_phone ?? "").replace(/\D/g, "")).filter(Boolean));
+
+    const toInsert: any[] = [];
+    let skipped = 0;
+    for (const row of data.rows) {
+      const email = (row.email ?? "").trim().toLowerCase() || null;
+      const phone = (row.wa_phone ?? "").trim() || null;
+      const phoneDigits = phone ? phone.replace(/\D/g, "") : "";
+      if ((email && emails.has(email)) || (phoneDigits && phones.has(phoneDigits))) {
+        skipped++;
+        continue;
+      }
+      if (email) emails.add(email);
+      if (phoneDigits) phones.add(phoneDigits);
+      toInsert.push({
+        tenant_id: tenantId,
+        display_name: row.display_name.trim(),
+        email,
+        wa_phone: phone,
+        notes: row.notes?.trim() || null,
+        status: "active",
+        booking_count: 0,
+        first_seen: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
+      });
+    }
+
+    if (toInsert.length === 0) return { imported: 0, skipped };
+    const { error } = await context.supabase.from("customers").insert(toInsert);
+    if (error) throw error;
+    return { imported: toInsert.length, skipped };
+  });

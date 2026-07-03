@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -69,6 +69,7 @@ import {
   upsertStaff,
   setStaffActive,
   deleteStaff,
+  uploadStaffPhoto,
 } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/staff")({
@@ -536,13 +537,17 @@ function StaffPage() {
 
             <TabsContent value="profile" className="space-y-3 pt-4">
               <div className="flex items-center gap-3">
-                <InitialsAvatar name={editorForm.name} seed={selected.id} size="lg" />
-                <div className="flex-1">
-                  <Label className="text-xs">Profile photo URL</Label>
-                  <Input
+                {editorForm.photo_url ? (
+                  <img src={editorForm.photo_url} alt={editorForm.name} className="h-14 w-14 rounded-full object-cover" />
+                ) : (
+                  <InitialsAvatar name={editorForm.name} seed={selected.id} size="lg" />
+                )}
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs">Profile photo</Label>
+                  <PhotoUploader
+                    staffId={editorForm.id}
                     value={editorForm.photo_url}
-                    onChange={(e) => setEditorForm({ ...editorForm, photo_url: e.target.value })}
-                    placeholder="https://…"
+                    onChange={(url) => setEditorForm({ ...editorForm, photo_url: url })}
                   />
                 </div>
               </div>
@@ -762,6 +767,47 @@ function StaffBookings({ staffId, bookings }: { staffId: string; bookings: any[]
           <Badge variant="outline" className="text-[11px]">{b.status}</Badge>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PhotoUploader({ staffId, value, onChange }: { staffId?: string; value: string; onChange: (url: string) => void }) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const uploadFn = useServerFn(uploadStaffPhoto);
+  const [busy, setBusy] = React.useState(false);
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error("Photo must be under 2 MB");
+    setBusy(true);
+    try {
+      const buf = await file.arrayBuffer();
+      let bin = "";
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const b64 = btoa(bin);
+      const res = await uploadFn({ data: { staff_id: staffId, filename: file.name, content_type: file.type || "image/png", data_base64: b64 } });
+      onChange(res.photo_url);
+      toast.success("Photo uploaded");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={onFile} />
+      <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
+        {busy ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : null}
+        {value ? "Replace photo" : "Upload photo"}
+      </Button>
+      {value && (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>Remove</Button>
+      )}
     </div>
   );
 }

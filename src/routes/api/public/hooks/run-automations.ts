@@ -91,6 +91,11 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     const { data } = await sb.from("services").select("name, duration_minutes").eq("id", booking.service_id).maybeSingle();
     service = data;
   }
+  let staff: any = null;
+  if (booking?.staff_id) {
+    const { data } = await sb.from("staff").select("name, email").eq("id", booking.staff_id).maybeSingle();
+    staff = data;
+  }
 
   const brand = tenant?.brand_color || "#C5283D";
   const portalUrl = booking?.portal_token
@@ -197,6 +202,22 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
   results.push(await sendEmail({ to: toEmail, subject, html, tenant, resendKey }));
   if (waEnabled && waText) {
     results.push(await sendWhatsApp({ to: toPhone, text: waText }));
+  }
+  // Also notify the assigned staff member on booking_created / booking_confirmed
+  if ((run.trigger_type === "booking_created" || run.trigger_type === "booking_confirmed") && staff?.email) {
+    const staffSubject = `New booking: ${booking?.customer_name ?? "Customer"} — ${service?.name ?? "appointment"}`;
+    const staffHtml = renderBookingEmail({
+      title: "New booking assigned to you 📅",
+      intro: `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>.`,
+      customerName: booking?.customer_name,
+      serviceName: service?.name,
+      whenStr,
+      refCode: booking?.ref_code,
+      portalUrl: null,
+      brand,
+      ctaLabel: undefined,
+    });
+    results.push(await sendEmail({ to: staff.email, subject: staffSubject, html: staffHtml, tenant, resendKey }));
   }
   return results;
 }

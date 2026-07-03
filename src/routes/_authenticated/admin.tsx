@@ -1,12 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { Loader2, Shield, Building2, Users, Calendar, DollarSign, Trash2 } from "lucide-react";
 import { formatCurrency, relativeTime } from "@/lib/format";
 import { listAllTenants, updateTenantStatus, deleteTenant } from "@/lib/admin.functions";
@@ -34,6 +36,8 @@ function AdminPage() {
   const fetchTenants = useServerFn(listAllTenants);
   const mutateTenant = useServerFn(updateTenantStatus);
   const removeTenant = useServerFn(deleteTenant);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["all-tenants"],
@@ -142,11 +146,7 @@ function AdminPage() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         title="Delete company"
-                        onClick={() => {
-                          if (window.confirm(`Permanently delete ${t.name}? All of their bookings, customers and data will be removed. This cannot be undone.`)) {
-                            deleteMut.mutate(t.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDelete({ id: t.id, name: t.name })}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -161,6 +161,37 @@ function AdminPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title={`Delete ${confirmDelete?.name ?? "company"}?`}
+        description="Every booking, customer and payment record for this company will be removed. You'll have 6 seconds to undo."
+        confirmLabel="Delete company"
+        destructive
+        onConfirm={() => {
+          const target = confirmDelete;
+          if (!target) return;
+          setConfirmDelete(null);
+          const timer = setTimeout(() => {
+            pendingDeletes.current.delete(target.id);
+            deleteMut.mutate(target.id);
+          }, 6000);
+          pendingDeletes.current.set(target.id, timer);
+          toast(`${target.name} will be deleted`, {
+            duration: 6000,
+            action: {
+              label: "Undo",
+              onClick: () => {
+                const t = pendingDeletes.current.get(target.id);
+                if (t) clearTimeout(t);
+                pendingDeletes.current.delete(target.id);
+                toast.success("Deletion cancelled");
+              },
+            },
+          });
+        }}
+      />
     </div>
   );
 }
