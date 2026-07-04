@@ -147,6 +147,17 @@ export const setCustomerStatus = createServerFn({ method: "POST" })
     return { ok: true, count: data.ids.length };
   });
 
+export const deleteCustomers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ ids: z.array(z.string().uuid()).min(1).max(500) }).parse(d))
+  .handler(async ({ context, data }) => {
+    const tenantId = await tenantOf(context.supabase, context.userId);
+    if (!tenantId) throw new Error("No tenant");
+    const { error } = await context.supabase.from("customers").delete().in("id", data.ids).eq("tenant_id", tenantId);
+    if (error) throw error;
+    return { ok: true, count: data.ids.length };
+  });
+
 export const updateCustomerNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), notes: z.string().max(4000) }).parse(d))
