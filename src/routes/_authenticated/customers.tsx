@@ -362,7 +362,7 @@ function CustomersPage() {
         description="This permanently removes the customer record. Past bookings remain but will no longer be linked to a profile."
         confirmLabel="Delete"
         destructive
-        onConfirm={() => rowDelete && deleteMut.mutate([rowDelete.id])}
+        onConfirm={() => { if (rowDelete) deleteMut.mutate([rowDelete.id]); }}
       />
     </div>
   );
