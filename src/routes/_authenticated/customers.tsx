@@ -279,7 +279,39 @@ function CustomersPage() {
                     <TableCell className="text-xs text-muted-foreground">{c.last_booking_at ? relativeTime(c.last_booking_at) : "—"}</TableCell>
                     <TableCell><StatusBadge status={c.status} /></TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveId(c.id)}>View</Button>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Button variant="ghost" size="sm" onClick={() => setActiveId(c.id)}>View</Button>
+                        {c.status === "blocked" ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-emerald-600"
+                            title="Unblock customer"
+                            onClick={() => toggleStatus.mutate({ id: c.id, status: "active" })}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            title="Block customer"
+                            onClick={() => toggleStatus.mutate({ id: c.id, status: "blocked" })}
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          title="Delete customer"
+                          onClick={() => setRowDelete({ id: c.id, name: c.display_name })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
