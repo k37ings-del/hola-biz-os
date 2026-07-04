@@ -58,7 +58,8 @@ function CustomersPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorCustomer, setEditorCustomer] = useState<Partial<Customer> | null>(null);
-  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate">(null);
+  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate" | "delete">(null);
+  const [rowDelete, setRowDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers"],
