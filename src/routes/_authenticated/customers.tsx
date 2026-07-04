@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save, Upload } from "lucide-react";
+import { Users, Search, Plus, Ban, Download, MessageSquare, Loader2, Save, Upload, Trash2, CheckCircle2 } from "lucide-react";
 import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
-import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV } from "@/lib/customers.functions";
+import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV, deleteCustomers } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({ meta: [{ title: "Customers · Holaweb Business OS" }] }),
@@ -49,6 +49,7 @@ function CustomersPage() {
   const qc = useQueryClient();
   const fetchList = useServerFn(listCustomers);
   const setStatus = useServerFn(setCustomerStatus);
+  const deleteFn = useServerFn(deleteCustomers);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -57,7 +58,8 @@ function CustomersPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorCustomer, setEditorCustomer] = useState<Partial<Customer> | null>(null);
-  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate">(null);
+  const [bulkConfirm, setBulkConfirm] = useState<null | "block" | "activate" | "delete">(null);
+  const [rowDelete, setRowDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers"],
@@ -86,9 +88,31 @@ function CustomersPage() {
     mutationFn: (vars: { ids: string[]; status: "active" | "inactive" | "blocked" }) => setStatus({ data: vars }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(`${vars.ids.length} customer(s) ${vars.status === "blocked" ? "blocked" : "updated"}`);
+      const label = vars.status === "blocked" ? "blocked" : vars.status === "active" ? "unblocked" : "updated";
+      toast.success(`${vars.ids.length} customer(s) ${label}`);
       setSelected(new Set());
       setBulkConfirm(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleStatus = useMutation({
+    mutationFn: (vars: { id: string; status: "active" | "blocked" }) => setStatus({ data: { ids: [vars.id], status: vars.status } }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      toast.success(vars.status === "blocked" ? "Customer blocked" : "Customer unblocked");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (ids: string[]) => deleteFn({ data: { ids } }),
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      toast.success(`${ids.length} customer(s) deleted`);
+      setSelected(new Set());
+      setBulkConfirm(null);
+      setRowDelete(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -182,8 +206,14 @@ function CustomersPage() {
             <span className="font-medium">{selected.size} selected</span>
             <div className="flex-1" />
             <Button size="sm" variant="outline" onClick={exportCsv}><Download className="h-3.5 w-3.5 mr-1.5" /> Export</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkStatus.mutate({ ids: Array.from(selected), status: "active" })}>
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Unblock
+            </Button>
             <Button size="sm" variant="outline" className="text-danger" onClick={() => setBulkConfirm("block")}>
               <Ban className="h-3.5 w-3.5 mr-1.5" /> Block
+            </Button>
+            <Button size="sm" variant="outline" className="text-danger" onClick={() => setBulkConfirm("delete")}>
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
           </div>
@@ -249,7 +279,39 @@ function CustomersPage() {
                     <TableCell className="text-xs text-muted-foreground">{c.last_booking_at ? relativeTime(c.last_booking_at) : "—"}</TableCell>
                     <TableCell><StatusBadge status={c.status} /></TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveId(c.id)}>View</Button>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Button variant="ghost" size="sm" onClick={() => setActiveId(c.id)}>View</Button>
+                        {c.status === "blocked" ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-emerald-600"
+                            title="Unblock customer"
+                            onClick={() => toggleStatus.mutate({ id: c.id, status: "active" })}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            title="Block customer"
+                            onClick={() => toggleStatus.mutate({ id: c.id, status: "blocked" })}
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          title="Delete customer"
+                          onClick={() => setRowDelete({ id: c.id, name: c.display_name })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -277,10 +339,30 @@ function CustomersPage() {
         open={bulkConfirm === "block"}
         onOpenChange={(v) => { if (!v) setBulkConfirm(null); }}
         title={`Block ${selected.size} customer(s)?`}
-        description="Blocked customers will not be able to book or message your business via WhatsApp until you unblock them."
+        description="Blocked customers will not be able to book or message your business until you unblock them."
         confirmLabel="Block"
         destructive
         onConfirm={() => bulkStatus.mutate({ ids: Array.from(selected), status: "blocked" })}
+      />
+
+      <ConfirmDialog
+        open={bulkConfirm === "delete"}
+        onOpenChange={(v) => { if (!v) setBulkConfirm(null); }}
+        title={`Delete ${selected.size} customer(s)?`}
+        description="This permanently removes the customer records. Their past bookings will remain but will no longer be linked to a customer profile."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => deleteMut.mutate(Array.from(selected))}
+      />
+
+      <ConfirmDialog
+        open={!!rowDelete}
+        onOpenChange={(v) => { if (!v) setRowDelete(null); }}
+        title={rowDelete ? `Delete ${rowDelete.name}?` : "Delete customer?"}
+        description="This permanently removes the customer record. Past bookings remain but will no longer be linked to a profile."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => { if (rowDelete) deleteMut.mutate([rowDelete.id]); }}
       />
     </div>
   );
