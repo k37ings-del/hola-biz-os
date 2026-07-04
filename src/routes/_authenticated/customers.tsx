@@ -23,7 +23,7 @@ import { SkeletonTable } from "@/components/shell/SkeletonTable";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
-import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV } from "@/lib/customers.functions";
+import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV, deleteCustomers } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({ meta: [{ title: "Customers · Holaweb Business OS" }] }),
