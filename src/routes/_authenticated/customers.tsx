@@ -49,6 +49,7 @@ function CustomersPage() {
   const qc = useQueryClient();
   const fetchList = useServerFn(listCustomers);
   const setStatus = useServerFn(setCustomerStatus);
+  const deleteFn = useServerFn(deleteCustomers);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
