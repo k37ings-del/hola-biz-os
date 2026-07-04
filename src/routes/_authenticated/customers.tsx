@@ -339,10 +339,30 @@ function CustomersPage() {
         open={bulkConfirm === "block"}
         onOpenChange={(v) => { if (!v) setBulkConfirm(null); }}
         title={`Block ${selected.size} customer(s)?`}
-        description="Blocked customers will not be able to book or message your business via WhatsApp until you unblock them."
+        description="Blocked customers will not be able to book or message your business until you unblock them."
         confirmLabel="Block"
         destructive
         onConfirm={() => bulkStatus.mutate({ ids: Array.from(selected), status: "blocked" })}
+      />
+
+      <ConfirmDialog
+        open={bulkConfirm === "delete"}
+        onOpenChange={(v) => { if (!v) setBulkConfirm(null); }}
+        title={`Delete ${selected.size} customer(s)?`}
+        description="This permanently removes the customer records. Their past bookings will remain but will no longer be linked to a customer profile."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => deleteMut.mutate(Array.from(selected))}
+      />
+
+      <ConfirmDialog
+        open={!!rowDelete}
+        onOpenChange={(v) => { if (!v) setRowDelete(null); }}
+        title={rowDelete ? `Delete ${rowDelete.name}?` : "Delete customer?"}
+        description="This permanently removes the customer record. Past bookings remain but will no longer be linked to a profile."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => rowDelete && deleteMut.mutate([rowDelete.id])}
       />
     </div>
   );
