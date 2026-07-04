@@ -206,8 +206,14 @@ function CustomersPage() {
             <span className="font-medium">{selected.size} selected</span>
             <div className="flex-1" />
             <Button size="sm" variant="outline" onClick={exportCsv}><Download className="h-3.5 w-3.5 mr-1.5" /> Export</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkStatus.mutate({ ids: Array.from(selected), status: "active" })}>
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Unblock
+            </Button>
             <Button size="sm" variant="outline" className="text-danger" onClick={() => setBulkConfirm("block")}>
               <Ban className="h-3.5 w-3.5 mr-1.5" /> Block
+            </Button>
+            <Button size="sm" variant="outline" className="text-danger" onClick={() => setBulkConfirm("delete")}>
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
           </div>
