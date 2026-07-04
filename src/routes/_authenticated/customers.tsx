@@ -88,9 +88,31 @@ function CustomersPage() {
     mutationFn: (vars: { ids: string[]; status: "active" | "inactive" | "blocked" }) => setStatus({ data: vars }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(`${vars.ids.length} customer(s) ${vars.status === "blocked" ? "blocked" : "updated"}`);
+      const label = vars.status === "blocked" ? "blocked" : vars.status === "active" ? "unblocked" : "updated";
+      toast.success(`${vars.ids.length} customer(s) ${label}`);
       setSelected(new Set());
       setBulkConfirm(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleStatus = useMutation({
+    mutationFn: (vars: { id: string; status: "active" | "blocked" }) => setStatus({ data: { ids: [vars.id], status: vars.status } }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      toast.success(vars.status === "blocked" ? "Customer blocked" : "Customer unblocked");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (ids: string[]) => deleteFn({ data: { ids } }),
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      toast.success(`${ids.length} customer(s) deleted`);
+      setSelected(new Set());
+      setBulkConfirm(null);
+      setRowDelete(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
