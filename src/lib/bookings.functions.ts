@@ -18,7 +18,7 @@ export const listBookings = createServerFn({ method: "GET" })
 
     const { data, error } = await context.supabase
       .from("bookings")
-      .select("id, ref_code, status, starts_at, ends_at, amount_cents, currency, notes, cancellation_reason, no_show_reason, customer:customers(id, display_name, wa_phone), service:services(id, name), staff:staff(id, name)")
+      .select("id, ref_code, status, starts_at, ends_at, amount_cents, currency, notes, cancellation_reason, no_show_reason, customer_name, customer_email, customer_phone, portal_token, customer:customers(id, display_name, wa_phone, email), service:services(id, name), staff:staff(id, name)")
       .eq("tenant_id", tenantId)
       .order("starts_at", { ascending: false })
       .limit(500);
