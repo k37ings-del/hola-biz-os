@@ -217,7 +217,12 @@ function BookingsPage() {
               {filtered.map((b: any) => (
                 <TableRow key={b.id} className="cursor-pointer hover:bg-accent/30" onClick={() => openEdit(b)}>
                   <TableCell className="font-mono text-xs">{b.ref_code}</TableCell>
-                  <TableCell>{b.customer?.display_name ?? "—"}</TableCell>
+                  <TableCell>
+                    <div className="min-w-0">
+                      <div className="text-sm truncate">{b.customer_name || b.customer?.display_name || "—"}</div>
+                      <div className="text-xs text-muted-foreground truncate">{b.customer_email || b.customer_phone || b.customer?.email || b.customer?.wa_phone || ""}</div>
+                    </div>
+                  </TableCell>
                   <TableCell>{b.service?.name ?? "—"}</TableCell>
                   <TableCell>{b.staff?.name ?? "—"}</TableCell>
                   <TableCell className="text-xs">{formatDateTime(b.starts_at)}</TableCell>
