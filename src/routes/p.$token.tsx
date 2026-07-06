@@ -81,7 +81,8 @@ function PortalPage() {
             <Badge variant="outline" className={statusTone[booking.status] ?? ""}>{booking.status.replace("_", " ")}</Badge>
           </div>
           <h2 className="font-display font-semibold text-2xl mt-3">Hi {booking.customer_name.split(" ")[0]} 👋</h2>
-          <p className="text-sm text-muted-foreground">Here's everything about your appointment with {tenant.name}.</p>
+          <p className="text-sm text-muted-foreground">Here's everything about your appointment with {tenant.name}. Bookmark this page — the link is permanent and always shows the latest status.</p>
+
 
           <div className="mt-5 space-y-3 text-sm">
             <Line icon={Calendar} label="When">
