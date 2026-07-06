@@ -219,34 +219,121 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     const staffSubject = `New booking: ${booking?.customer_name ?? "Customer"} — ${service?.name ?? "appointment"}`;
     const staffHtml = renderBookingEmail({
       title: "New booking assigned to you 📅",
-      intro: `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>.`,
+      intro: `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>. This email includes a calendar invite — accept it to add the appointment to your calendar automatically.`,
       customerName: booking?.customer_name,
+      customerEmail: booking?.customer_email,
+      customerPhone: booking?.customer_phone,
       serviceName: service?.name,
       whenStr,
+      durationMin: service?.duration_minutes,
       refCode: booking?.ref_code,
       portalUrl: null,
       brand,
       ctaLabel: undefined,
     });
-    results.push(await sendEmail({ to: staff.email, subject: staffSubject, html: staffHtml, tenant, resendKey }));
+    const icsContent = booking?.starts_at && booking?.ends_at
+      ? buildIcsInvite({
+          uid: `${booking.id}@holaweb`,
+          startsAt: booking.starts_at,
+          endsAt: booking.ends_at,
+          summary: `${service?.name ?? "Appointment"} — ${booking?.customer_name ?? "Customer"}`,
+          description: [
+            booking?.ref_code && `Ref: ${booking.ref_code}`,
+            booking?.customer_name && `Client: ${booking.customer_name}`,
+            booking?.customer_email && `Email: ${booking.customer_email}`,
+            booking?.customer_phone && `Phone: ${booking.customer_phone}`,
+            service?.name && `Service: ${service.name}`,
+          ].filter(Boolean).join("\n"),
+          organizerName: tenant?.name ?? "HolaWeb",
+          organizerEmail: tenant?.email ?? undefined,
+          attendeeName: staff?.name ?? undefined,
+          attendeeEmail: staff.email,
+          status: booking?.status === "CANCELLED" ? "CANCELLED" : "CONFIRMED",
+        })
+      : null;
+    results.push(await sendEmail({
+      to: staff.email,
+      subject: staffSubject,
+      html: staffHtml,
+      tenant,
+      resendKey,
+      icsContent,
+      icsFilename: `booking-${booking?.ref_code ?? booking?.id ?? "invite"}.ics`,
+    }));
   }
   return results;
 }
 
-async function sendEmail(opts: { to: string | null; subject: string; html: string; tenant: any; resendKey: string | undefined }): Promise<DispatchResult> {
+async function sendEmail(opts: { to: string | null; subject: string; html: string; tenant: any; resendKey: string | undefined; icsContent?: string | null; icsFilename?: string }): Promise<DispatchResult> {
   if (!opts.resendKey) return { channel: "email", skipped: true, reason: "RESEND_API_KEY not configured" };
   if (!opts.to) return { channel: "email", skipped: true, reason: "no recipient email" };
   const fromName = opts.tenant?.name ?? "HolaWeb";
   const fromAddress = `${fromName} <onboarding@resend.dev>`;
+  const body: any = { from: fromAddress, to: [opts.to], subject: opts.subject, html: opts.html, reply_to: opts.tenant?.email ?? undefined };
+  if (opts.icsContent) {
+    body.attachments = [
+      {
+        filename: opts.icsFilename ?? "invite.ics",
+        content: Buffer.from(opts.icsContent, "utf-8").toString("base64"),
+        content_type: "text/calendar; method=REQUEST; charset=utf-8",
+      },
+    ];
+  }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${opts.resendKey}` },
-    body: JSON.stringify({ from: fromAddress, to: [opts.to], subject: opts.subject, html: opts.html, reply_to: opts.tenant?.email ?? undefined }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const json: any = await res.json().catch(() => ({}));
   return { channel: "email", provider_id: json?.id ?? null };
 }
+
+function buildIcsInvite(opts: {
+  uid: string;
+  startsAt: string;
+  endsAt: string;
+  summary: string;
+  description: string;
+  organizerName: string;
+  organizerEmail?: string;
+  attendeeName?: string;
+  attendeeEmail: string;
+  status: "CONFIRMED" | "CANCELLED";
+}) {
+  const fmt = (iso: string) => {
+    const d = new Date(iso);
+    const z = (n: number) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}${z(d.getUTCMonth() + 1)}${z(d.getUTCDate())}T${z(d.getUTCHours())}${z(d.getUTCMinutes())}${z(d.getUTCSeconds())}Z`;
+  };
+  const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+  const organizer = opts.organizerEmail
+    ? `ORGANIZER;CN=${esc(opts.organizerName)}:mailto:${opts.organizerEmail}`
+    : `ORGANIZER;CN=${esc(opts.organizerName)}:mailto:noreply@holaweb.africa`;
+  const attendee = `ATTENDEE;CN=${esc(opts.attendeeName ?? opts.attendeeEmail)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${opts.attendeeEmail}`;
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//HolaWeb//Business OS//EN",
+    "METHOD:REQUEST",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${opts.uid}`,
+    `DTSTAMP:${fmt(new Date().toISOString())}`,
+    `DTSTART:${fmt(opts.startsAt)}`,
+    `DTEND:${fmt(opts.endsAt)}`,
+    `SUMMARY:${esc(opts.summary)}`,
+    `DESCRIPTION:${esc(opts.description)}`,
+    organizer,
+    attendee,
+    `STATUS:${opts.status}`,
+    "SEQUENCE:0",
+    "TRANSP:OPAQUE",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
 
 async function sendWhatsApp(opts: { to: string | null; text: string }): Promise<DispatchResult> {
   const sid = process.env.TWILIO_ACCOUNT_SID;
