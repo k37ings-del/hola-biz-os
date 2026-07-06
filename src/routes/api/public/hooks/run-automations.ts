@@ -273,42 +273,87 @@ function escapeHtml(s: string | null | undefined) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
+function formatMoney(amountCents?: number | null, currency?: string | null) {
+  if (amountCents == null || !currency) return null;
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amountCents / 100);
+  } catch {
+    return `${(amountCents / 100).toFixed(2)} ${currency}`;
+  }
+}
+
 function renderBookingEmail(opts: {
   title: string;
   intro: string;
   customerName?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
   serviceName?: string | null;
+  staffName?: string | null;
   whenStr?: string | null;
+  durationMin?: number | null;
   refCode?: string | null;
+  amountCents?: number | null;
+  currency?: string | null;
+  status?: string | null;
+  tenantName?: string | null;
+  tenantEmail?: string | null;
   portalUrl?: string | null;
   brand: string;
   ctaLabel?: string;
+  invoice?: boolean;
 }) {
   const cta = opts.portalUrl && opts.ctaLabel
     ? `<a href="${opts.portalUrl}" style="display:inline-block;background:${opts.brand};color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:14px;margin-top:18px">${escapeHtml(opts.ctaLabel)}</a>`
     : "";
+
+  const money = formatMoney(opts.amountCents, opts.currency);
   const rows = [
+    opts.refCode && row("Reference", `<code style="font-family:monospace;background:#f4f4f6;padding:2px 6px;border-radius:4px">${escapeHtml(opts.refCode)}</code>`),
+    opts.status && row("Status", `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:${opts.brand}22;color:${opts.brand};font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase">${escapeHtml(opts.status.replace("_", " "))}</span>`),
     opts.customerName && row("Name", escapeHtml(opts.customerName)),
-    opts.serviceName && row("Service", escapeHtml(opts.serviceName)),
-    opts.whenStr && row("When", escapeHtml(opts.whenStr)),
-    opts.refCode && row("Reference", `<code style="font-family:monospace">${escapeHtml(opts.refCode)}</code>`),
+    opts.customerEmail && row("Email", escapeHtml(opts.customerEmail)),
+    opts.customerPhone && row("Phone", escapeHtml(opts.customerPhone)),
+    opts.serviceName && row("Service", `${escapeHtml(opts.serviceName)}${opts.durationMin ? ` <span style="color:#888">· ${opts.durationMin} min</span>` : ""}`),
+    opts.staffName && row("With", escapeHtml(opts.staffName)),
+    opts.whenStr && row("When", `<strong>${escapeHtml(opts.whenStr)}</strong>`),
   ].filter(Boolean).join("");
+
+  const totalBlock = opts.invoice && money
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;border-top:2px solid #111">
+        <tr>
+          <td style="padding:14px 0;font-size:13px;color:#666">Total ${opts.status === "PENDING_PAYMENT" ? "due" : "paid"}</td>
+          <td style="padding:14px 0;font-size:20px;font-weight:700;text-align:right">${escapeHtml(money)}</td>
+        </tr>
+      </table>`
+    : "";
+
+  const trackNote = opts.portalUrl
+    ? `<p style="margin:18px 0 0;font-size:12px;color:#666;line-height:1.5">You can reopen your booking anytime at:<br><a href="${opts.portalUrl}" style="color:${opts.brand};word-break:break-all">${escapeHtml(opts.portalUrl)}</a></p>`
+    : "";
+
+  const footerContact = opts.tenantName
+    ? `<p style="margin:0 0 4px;font-weight:600;color:#333">${escapeHtml(opts.tenantName)}</p>${opts.tenantEmail ? `<p style="margin:0"><a href="mailto:${escapeHtml(opts.tenantEmail)}" style="color:#888;text-decoration:none">${escapeHtml(opts.tenantEmail)}</a></p>` : ""}`
+    : "";
 
   return `<!doctype html><html><body style="margin:0;background:#f6f6f8;font-family:-apple-system,Segoe UI,sans-serif;color:#1a1a1a">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
     <tr><td align="center" style="padding:32px 16px">
       <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
         <tr><td style="background:${opts.brand};padding:24px 28px;color:#fff">
-          <p style="margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85">HolaWeb</p>
+          <p style="margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85">${escapeHtml(opts.tenantName ?? "HolaWeb")}${opts.invoice ? " · Receipt" : ""}</p>
           <h1 style="margin:6px 0 0;font-size:22px;font-weight:600">${escapeHtml(opts.title)}</h1>
         </td></tr>
         <tr><td style="padding:24px 28px">
           <p style="margin:0 0 14px;font-size:14px;line-height:1.6">${opts.intro}</p>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:13px;border-top:1px solid #eee;margin-top:8px">${rows}</table>
+          ${totalBlock}
           ${cta}
+          ${trackNote}
         </td></tr>
-        <tr><td style="padding:14px 28px;background:#fafafa;color:#888;font-size:11px;text-align:center">
-          Powered by HolaWeb Business OS
+        <tr><td style="padding:18px 28px;background:#fafafa;color:#888;font-size:11px;text-align:center">
+          ${footerContact}
+          <p style="margin:8px 0 0">Powered by HolaWeb Business OS</p>
         </td></tr>
       </table>
     </td></tr>
@@ -316,5 +361,6 @@ function renderBookingEmail(opts: {
 }
 
 function row(k: string, v: string) {
-  return `<tr><td style="padding:10px 0;color:#888;width:90px">${k}</td><td style="padding:10px 0">${v}</td></tr>`;
+  return `<tr><td style="padding:10px 0;color:#888;width:90px;vertical-align:top">${k}</td><td style="padding:10px 0">${v}</td></tr>`;
 }
+
