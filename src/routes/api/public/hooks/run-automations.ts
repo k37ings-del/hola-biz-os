@@ -120,19 +120,30 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
       toEmail = booking?.customer_email ?? null;
       toPhone = booking?.customer_phone ?? null;
       waEnabled = true;
-      subject = `Your booking with ${tenant?.name ?? "us"} is confirmed`;
+      subject = `Booking confirmed · ${booking?.ref_code ?? ""} · ${tenant?.name ?? "us"}`;
       html = renderBookingEmail({
         title: "You're booked! 🎉",
-        intro: `Thanks for booking with <strong>${escapeHtml(tenant?.name ?? "us")}</strong>.`,
+        intro: `Thanks for booking with <strong>${escapeHtml(tenant?.name ?? "us")}</strong>. Keep this email — it's your receipt and includes a link you can reopen anytime to track your booking.`,
         customerName: booking?.customer_name,
+        customerEmail: booking?.customer_email,
+        customerPhone: booking?.customer_phone,
         serviceName: service?.name,
+        staffName: staff?.name,
         whenStr,
+        durationMin: service?.duration_minutes,
         refCode: booking?.ref_code,
+        amountCents: booking?.amount_cents,
+        currency: booking?.currency,
+        status: booking?.status,
+        tenantName: tenant?.name,
+        tenantEmail: tenant?.email,
         portalUrl,
         brand,
-        ctaLabel: "View my booking",
+        ctaLabel: "Track my booking",
+        invoice: true,
       });
-      waText = `Hi ${booking?.customer_name ?? ""}, your booking with ${tenant?.name ?? "us"} is confirmed ✅\n${service?.name ? service.name + " — " : ""}${whenStr}\nRef: ${booking?.ref_code ?? ""}${portalUrl ? `\nManage: ${portalUrl}` : ""}`;
+      waText = `Hi ${booking?.customer_name ?? ""}, your booking with ${tenant?.name ?? "us"} is confirmed ✅\n${service?.name ? service.name + " — " : ""}${whenStr}\nRef: ${booking?.ref_code ?? ""}${portalUrl ? `\nTrack: ${portalUrl}` : ""}`;
+
       break;
     }
     case "before_appointment":
