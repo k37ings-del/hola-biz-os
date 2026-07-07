@@ -1017,6 +1017,8 @@ export type Database = {
           ics_token: string | null
           id: string
           name: string
+          notify_calendar_invite: boolean
+          notify_email_on_booking: boolean
           photo_url: string | null
           role: string
           tenant_id: string
@@ -1033,6 +1035,8 @@ export type Database = {
           ics_token?: string | null
           id?: string
           name: string
+          notify_calendar_invite?: boolean
+          notify_email_on_booking?: boolean
           photo_url?: string | null
           role?: string
           tenant_id: string
@@ -1049,6 +1053,8 @@ export type Database = {
           ics_token?: string | null
           id?: string
           name?: string
+          notify_calendar_invite?: boolean
+          notify_email_on_booking?: boolean
           photo_url?: string | null
           role?: string
           tenant_id?: string
