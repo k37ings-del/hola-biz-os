@@ -572,14 +572,18 @@ function StaffPage() {
                     onChange={(e) => setEditorForm({ ...editorForm, wa_number: e.target.value })}
                   />
                 </Field>
-                <Field label="Email">
+                <Field label="Personal email (for booking notifications)">
                   <Input
                     type="email"
                     value={editorForm.email}
                     onChange={(e) => setEditorForm({ ...editorForm, email: e.target.value })}
+                    placeholder="jane@example.com"
                   />
                 </Field>
               </div>
+              <p className="text-[11px] text-muted-foreground -mt-1">
+                Booking confirmations and calendar invites are sent to this address.
+              </p>
               <Field label="Role">
                 <Select
                   value={editorForm.role}
