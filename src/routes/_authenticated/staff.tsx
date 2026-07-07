@@ -116,6 +116,8 @@ type FormState = {
   active: boolean;
   availability: Availability;
   service_ids: string[];
+  notify_email_on_booking: boolean;
+  notify_calendar_invite: boolean;
 };
 
 function emptyForm(): FormState {
@@ -129,6 +131,8 @@ function emptyForm(): FormState {
     active: true,
     availability: defaultAvailability(),
     service_ids: [],
+    notify_email_on_booking: true,
+    notify_calendar_invite: true,
   };
 }
 
