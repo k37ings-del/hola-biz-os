@@ -219,6 +219,8 @@ function StaffPage() {
       active: !!s.active,
       availability: { ...defaultAvailability(), ...(s.availability ?? {}) } as Availability,
       service_ids: servicesByStaff.get(s.id) ?? [],
+      notify_email_on_booking: s.notify_email_on_booking !== false,
+      notify_calendar_invite: s.notify_calendar_invite !== false,
     });
   };
 
