@@ -216,50 +216,59 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
   }
   // Also notify the assigned staff member on booking_created / booking_confirmed
   if ((run.trigger_type === "booking_created" || run.trigger_type === "booking_confirmed") && staff?.email) {
-    const staffSubject = `New booking: ${booking?.customer_name ?? "Customer"} — ${service?.name ?? "appointment"}`;
-    const staffHtml = renderBookingEmail({
-      title: "New booking assigned to you 📅",
-      intro: `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>. This email includes a calendar invite — accept it to add the appointment to your calendar automatically.`,
-      customerName: booking?.customer_name,
-      customerEmail: booking?.customer_email,
-      customerPhone: booking?.customer_phone,
-      serviceName: service?.name,
-      whenStr,
-      durationMin: service?.duration_minutes,
-      refCode: booking?.ref_code,
-      portalUrl: null,
-      brand,
-      ctaLabel: undefined,
-    });
-    const icsContent = booking?.starts_at && booking?.ends_at
-      ? buildIcsInvite({
-          uid: `${booking.id}@holaweb`,
-          startsAt: booking.starts_at,
-          endsAt: booking.ends_at,
-          summary: `${service?.name ?? "Appointment"} — ${booking?.customer_name ?? "Customer"}`,
-          description: [
-            booking?.ref_code && `Ref: ${booking.ref_code}`,
-            booking?.customer_name && `Client: ${booking.customer_name}`,
-            booking?.customer_email && `Email: ${booking.customer_email}`,
-            booking?.customer_phone && `Phone: ${booking.customer_phone}`,
-            service?.name && `Service: ${service.name}`,
-          ].filter(Boolean).join("\n"),
-          organizerName: tenant?.name ?? "HolaWeb",
-          organizerEmail: tenant?.email ?? undefined,
-          attendeeName: staff?.name ?? undefined,
-          attendeeEmail: staff.email,
-          status: booking?.status === "CANCELLED" ? "CANCELLED" : "CONFIRMED",
-        })
-      : null;
-    results.push(await sendEmail({
-      to: staff.email,
-      subject: staffSubject,
-      html: staffHtml,
-      tenant,
-      resendKey,
-      icsContent,
-      icsFilename: `booking-${booking?.ref_code ?? booking?.id ?? "invite"}.ics`,
-    }));
+    const emailEnabled = staff.notify_email_on_booking !== false; // default on
+    const icsEnabled = staff.notify_calendar_invite !== false; // default on
+    if (!emailEnabled) {
+      results.push({ channel: "email", skipped: true, reason: "staff opted out of booking emails" });
+    } else {
+      const staffSubject = `New booking: ${booking?.customer_name ?? "Customer"} — ${service?.name ?? "appointment"}`;
+      const staffHtml = renderBookingEmail({
+        title: "New booking assigned to you 📅",
+        intro: icsEnabled
+          ? `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>. This email includes a calendar invite — accept it to add the appointment to your calendar automatically.`
+          : `You have a new booking at <strong>${escapeHtml(tenant?.name ?? "your workspace")}</strong>.`,
+        customerName: booking?.customer_name,
+        customerEmail: booking?.customer_email,
+        customerPhone: booking?.customer_phone,
+        serviceName: service?.name,
+        whenStr,
+        durationMin: service?.duration_minutes,
+        refCode: booking?.ref_code,
+        portalUrl: null,
+        brand,
+        ctaLabel: undefined,
+      });
+      const icsContent = icsEnabled && booking?.starts_at && booking?.ends_at
+        ? buildIcsInvite({
+            uid: `${booking.id}@holaweb`,
+            startsAt: booking.starts_at,
+            endsAt: booking.ends_at,
+            summary: `${service?.name ?? "Appointment"} — ${booking?.customer_name ?? "Customer"}`,
+            description: [
+              booking?.ref_code && `Ref: ${booking.ref_code}`,
+              booking?.customer_name && `Client: ${booking.customer_name}`,
+              booking?.customer_email && `Email: ${booking.customer_email}`,
+              booking?.customer_phone && `Phone: ${booking.customer_phone}`,
+              service?.name && `Service: ${service.name}`,
+            ].filter(Boolean).join("\n"),
+            organizerName: tenant?.name ?? "HolaWeb",
+            organizerEmail: tenant?.email ?? undefined,
+            attendeeName: staff?.name ?? undefined,
+            attendeeEmail: staff.email,
+            status: booking?.status === "CANCELLED" ? "CANCELLED" : "CONFIRMED",
+            tenantTimezone: tenant?.timezone ?? undefined,
+          })
+        : null;
+      results.push(await sendEmail({
+        to: staff.email,
+        subject: staffSubject,
+        html: staffHtml,
+        tenant,
+        resendKey,
+        icsContent,
+        icsFilename: `booking-${booking?.ref_code ?? booking?.id ?? "invite"}.ics`,
+      }));
+    }
   }
   return results;
 }
