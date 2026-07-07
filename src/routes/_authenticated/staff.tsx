@@ -243,6 +243,8 @@ function StaffPage() {
           active: payload.active,
           availability: payload.availability,
           service_ids: payload.service_ids,
+          notify_email_on_booking: payload.notify_email_on_booking,
+          notify_calendar_invite: payload.notify_calendar_invite,
         } as any,
       }),
     onSuccess: () => {
