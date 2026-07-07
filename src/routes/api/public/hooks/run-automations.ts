@@ -309,7 +309,12 @@ function buildIcsInvite(opts: {
   attendeeName?: string;
   attendeeEmail: string;
   status: "CONFIRMED" | "CANCELLED";
+  tenantTimezone?: string;
 }) {
+  // DTSTART/DTEND are emitted in UTC (Z-suffix). Because timestamptz values are
+  // absolute instants, UTC is unambiguous across DST transitions — calendar
+  // clients render each instant in the recipient's local zone automatically.
+  // X-WR-TIMEZONE is a display hint for the organizer's tenant timezone.
   const fmt = (iso: string) => {
     const d = new Date(iso);
     const z = (n: number) => String(n).padStart(2, "0");
@@ -320,12 +325,15 @@ function buildIcsInvite(opts: {
     ? `ORGANIZER;CN=${esc(opts.organizerName)}:mailto:${opts.organizerEmail}`
     : `ORGANIZER;CN=${esc(opts.organizerName)}:mailto:noreply@holaweb.africa`;
   const attendee = `ATTENDEE;CN=${esc(opts.attendeeName ?? opts.attendeeEmail)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${opts.attendeeEmail}`;
-  return [
+  const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//HolaWeb//Business OS//EN",
     "METHOD:REQUEST",
     "CALSCALE:GREGORIAN",
+  ];
+  if (opts.tenantTimezone) lines.push(`X-WR-TIMEZONE:${esc(opts.tenantTimezone)}`);
+  lines.push(
     "BEGIN:VEVENT",
     `UID:${opts.uid}`,
     `DTSTAMP:${fmt(new Date().toISOString())}`,
@@ -340,7 +348,8 @@ function buildIcsInvite(opts: {
     "TRANSP:OPAQUE",
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
+  );
+  return lines.join("\r\n");
 }
 
 
