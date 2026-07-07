@@ -32,7 +32,7 @@ export const listStaff = createServerFn({ method: "GET" })
       await Promise.all([
         context.supabase
           .from("staff")
-          .select("id, name, wa_number, email, role, bio, photo_url, active, availability, created_at")
+          .select("id, name, wa_number, email, role, bio, photo_url, active, availability, notify_email_on_booking, notify_calendar_invite, created_at")
           .eq("tenant_id", tenantId)
           .order("name"),
         context.supabase
