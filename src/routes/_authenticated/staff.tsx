@@ -116,6 +116,8 @@ type FormState = {
   active: boolean;
   availability: Availability;
   service_ids: string[];
+  notify_email_on_booking: boolean;
+  notify_calendar_invite: boolean;
 };
 
 function emptyForm(): FormState {
@@ -129,6 +131,8 @@ function emptyForm(): FormState {
     active: true,
     availability: defaultAvailability(),
     service_ids: [],
+    notify_email_on_booking: true,
+    notify_calendar_invite: true,
   };
 }
 
@@ -215,6 +219,8 @@ function StaffPage() {
       active: !!s.active,
       availability: { ...defaultAvailability(), ...(s.availability ?? {}) } as Availability,
       service_ids: servicesByStaff.get(s.id) ?? [],
+      notify_email_on_booking: s.notify_email_on_booking !== false,
+      notify_calendar_invite: s.notify_calendar_invite !== false,
     });
   };
 
@@ -237,6 +243,8 @@ function StaffPage() {
           active: payload.active,
           availability: payload.availability,
           service_ids: payload.service_ids,
+          notify_email_on_booking: payload.notify_email_on_booking,
+          notify_calendar_invite: payload.notify_calendar_invite,
         } as any,
       }),
     onSuccess: () => {
@@ -564,14 +572,18 @@ function StaffPage() {
                     onChange={(e) => setEditorForm({ ...editorForm, wa_number: e.target.value })}
                   />
                 </Field>
-                <Field label="Email">
+                <Field label="Personal email (for booking notifications)">
                   <Input
                     type="email"
                     value={editorForm.email}
                     onChange={(e) => setEditorForm({ ...editorForm, email: e.target.value })}
+                    placeholder="jane@example.com"
                   />
                 </Field>
               </div>
+              <p className="text-[11px] text-muted-foreground -mt-1">
+                Booking confirmations and calendar invites are sent to this address.
+              </p>
               <Field label="Role">
                 <Select
                   value={editorForm.role}
@@ -607,6 +619,34 @@ function StaffPage() {
                   checked={editorForm.active}
                   onCheckedChange={(v) => setEditorForm({ ...editorForm, active: v })}
                 />
+              </div>
+              <div className="rounded-md border p-3 space-y-3 bg-muted/30">
+                <div>
+                  <p className="text-sm font-medium">Notification preferences</p>
+                  <p className="text-[11px] text-muted-foreground">Control what this staff member receives when a booking is assigned to them.</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Booking confirmation email</Label>
+                    <p className="text-[11px] text-muted-foreground">Send an email to their personal address for each new booking.</p>
+                  </div>
+                  <Switch
+                    checked={editorForm.notify_email_on_booking}
+                    onCheckedChange={(v) => setEditorForm({ ...editorForm, notify_email_on_booking: v })}
+                    disabled={!editorForm.email.trim()}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Attach calendar invite (.ics)</Label>
+                    <p className="text-[11px] text-muted-foreground">Include an invite so the booking auto-adds to their calendar.</p>
+                  </div>
+                  <Switch
+                    checked={editorForm.notify_calendar_invite}
+                    onCheckedChange={(v) => setEditorForm({ ...editorForm, notify_calendar_invite: v })}
+                    disabled={!editorForm.notify_email_on_booking || !editorForm.email.trim()}
+                  />
+                </div>
               </div>
             </TabsContent>
 
