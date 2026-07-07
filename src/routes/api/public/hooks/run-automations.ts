@@ -84,7 +84,7 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
     booking = data;
   }
   if (run.tenant_id) {
-    const { data } = await sb.from("tenants").select("id, name, slug, email, brand_color").eq("id", run.tenant_id).maybeSingle();
+    const { data } = await sb.from("tenants").select("id, name, slug, email, brand_color, timezone").eq("id", run.tenant_id).maybeSingle();
     tenant = data;
   }
   if (booking?.service_id) {
@@ -93,7 +93,7 @@ async function dispatch(sb: any, run: any, resendKey: string | undefined): Promi
   }
   let staff: any = null;
   if (booking?.staff_id) {
-    const { data } = await sb.from("staff").select("name, email").eq("id", booking.staff_id).maybeSingle();
+    const { data } = await sb.from("staff").select("name, email, notify_email_on_booking, notify_calendar_invite").eq("id", booking.staff_id).maybeSingle();
     staff = data;
   }
 
