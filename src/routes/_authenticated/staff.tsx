@@ -620,6 +620,34 @@ function StaffPage() {
                   onCheckedChange={(v) => setEditorForm({ ...editorForm, active: v })}
                 />
               </div>
+              <div className="rounded-md border p-3 space-y-3 bg-muted/30">
+                <div>
+                  <p className="text-sm font-medium">Notification preferences</p>
+                  <p className="text-[11px] text-muted-foreground">Control what this staff member receives when a booking is assigned to them.</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Booking confirmation email</Label>
+                    <p className="text-[11px] text-muted-foreground">Send an email to their personal address for each new booking.</p>
+                  </div>
+                  <Switch
+                    checked={editorForm.notify_email_on_booking}
+                    onCheckedChange={(v) => setEditorForm({ ...editorForm, notify_email_on_booking: v })}
+                    disabled={!editorForm.email.trim()}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm">Attach calendar invite (.ics)</Label>
+                    <p className="text-[11px] text-muted-foreground">Include an invite so the booking auto-adds to their calendar.</p>
+                  </div>
+                  <Switch
+                    checked={editorForm.notify_calendar_invite}
+                    onCheckedChange={(v) => setEditorForm({ ...editorForm, notify_calendar_invite: v })}
+                    disabled={!editorForm.notify_email_on_booking || !editorForm.email.trim()}
+                  />
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="schedule" className="pt-4">
