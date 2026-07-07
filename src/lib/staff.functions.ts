@@ -85,6 +85,8 @@ export const upsertStaff = createServerFn({ method: "POST" })
         active: z.boolean(),
         availability: z.record(z.any()).optional(),
         service_ids: z.array(z.string().uuid()).optional(),
+        notify_email_on_booking: z.boolean().optional(),
+        notify_calendar_invite: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -103,6 +105,8 @@ export const upsertStaff = createServerFn({ method: "POST" })
       active: data.active,
       availability: data.availability ?? defaultAvailability(),
     };
+    if (data.notify_email_on_booking !== undefined) payload.notify_email_on_booking = data.notify_email_on_booking;
+    if (data.notify_calendar_invite !== undefined) payload.notify_calendar_invite = data.notify_calendar_invite;
 
     let staffId = data.id;
     if (staffId) {
