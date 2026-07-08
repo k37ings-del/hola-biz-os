@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, MessageSquare, Calendar, CheckCircle2, DollarSign, FileText } from "lucide-react";
+import { Users, Calendar, CheckCircle2, DollarSign, FileText } from "lucide-react";
 import { formatCurrency, relativeTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -104,7 +104,11 @@ function DashboardPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <KpiCard label="Customers" value={kpis.data?.customers ?? "—"} icon={Users} />
-        <KpiCard label="Active chats" value={kpis.data?.openConversations ?? "—"} icon={MessageSquare} />
+        <KpiCard
+          label="Calendar"
+          value={<Link to="/calendar" className="underline decoration-dotted underline-offset-4">Open</Link>}
+          icon={Calendar}
+        />
         <KpiCard label="Total bookings" value={kpis.data?.totalBookings ?? "—"} icon={Calendar} />
         <KpiCard label="Confirmed" value={kpis.data?.confirmedBookings ?? "—"} icon={CheckCircle2} />
         <KpiCard
