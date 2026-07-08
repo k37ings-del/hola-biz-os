@@ -197,7 +197,7 @@ function WhatsAppButton({
   );
 }
 
-function SectionDeprecated({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
       <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-2">{title}</h3>
