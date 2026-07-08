@@ -1,63 +1,68 @@
-# HolaWeb Appointments & Commerce OS — Build Plan
+# Implementation Plan
 
-This is a multi-week scope. I'll break it into phases so we can ship value each turn instead of one mega-change that breaks half the app. Confirm the phase order (or re-order) and I'll start with Phase 1 next turn.
+## 1. Navigation restructure
 
-## Positioning & instant fixes (this turn, if you approve)
-1. Re-brand the app shell, meta titles, and marketing copy from "Business OS / booking system" to **HolaWeb Appointments & Commerce OS**.
-2. Fix the sign-up country default: stop hard-defaulting to Nigeria. On registration, detect country from the browser (`Intl.DateTimeFormat().resolvedOptions().timeZone` + `navigator.language`) as a suggestion, but the user picks the country in the form and the tenant's `country` + `default_currency` are set from that selection only.
-3. Remove any remaining salon-specific copy/icons (already partially done) and audit the Holaweb tenant so it shows ZAR + South Africa, not Lagos.
+- **New `/crm` route** with tabs: Bookings | Customers. Old `/bookings` and `/customers` become thin redirect files → `/crm?tab=bookings|customers`. Existing components extracted into `<BookingsTab />` and `<CustomersTab />` and rendered inside `/crm`.
+- **Dashboard**: add a "Calendar" tile linking to `/calendar`. Keep `/calendar` route intact.
+- **Sidebar**: remove Calendar, Inbox, Schedule, Automations, Staff. Sidebar becomes: Dashboard, CRM, Services, Finance, Invoices, Payments, Settings (+ Admin/Demo for super-admins).
+- **Settings page** gains new tabs: General, Branding, Notifications, **Schedule**, **Automations**, **Staff**, **Integrations**, Billing (existing tabs preserved).
+  - Schedule tab shows only the signed-in user's own staff row (matched by `users.email` → `staff.email`). Removes the "Business hours" section entirely.
+  - Automations tab hosts current `/automations` UI.
+  - Staff tab hosts current `/staff` UI (still tenant-wide for admins/owners).
 
-## Phase 1 — Customer-facing booking flow (public)
-- Public route `/{tenant-slug}/book` (and later custom domain), mobile-first, white-label (logo, primary color, business name from `tenants`/`tenant_settings`).
-- Wizard: Service → Staff (optional) → Date → Time slot → Customer info → Intake form → Summary → Pay → Confirmation.
-- Real-time availability using staff working hours + existing bookings + service `duration_minutes` + configurable buffer.
-- Timezone auto-detect, multi-location aware (schema additions: `locations` table, `staff.location_id`).
-- Backed by public-read server functions (publishable key + narrow anon SELECT on services/staff/availability views).
+## 2. Remove Inbox
 
-## Phase 2 — Booking lifecycle & ops
-- Reschedule + cancel links (signed token, no login required for the customer).
-- Waiting list table + auto-notify when a slot frees.
-- Recurring availability & buffer times in Staff → Schedule.
-- Automated reminders/follow-ups (scheduled via pg_cron → `/api/public/cron/*` route).
+- Delete `src/routes/_authenticated/inbox.tsx`, sidebar entry, and `src/lib/inbox.functions.ts`.
+- Migration drops `public.messages`, `public.conversations`, `public.message_templates` (with CASCADE).
 
-## Phase 3 — Finance module
-- New `/finance` route consolidating Invoices, Payments, Refunds, Payouts (replaces the current placeholder pages).
-- Schema: extend `invoices`, `payments`; add `refunds`, `payouts`.
-- Per-tenant payment provider config in `tenant_settings`.
+## 3. WhatsApp deep-link on customer portal
 
-## Phase 4 — Payment provider integrations
-Ship one at a time, each behind a provider adapter interface:
-PayFast, Ozow, Yoco, Peach, Paystack, Flutterwave, Stripe. Webhooks under `/api/public/webhooks/{provider}` with signature verification.
+- On `/p/$token`, add a prominent "Send WhatsApp message to {staff}" button.
+- Requires staff `wa_number`. Builds `https://wa.me/{digits}?text={encoded}` with message:
+  `Hello {Staff Name}, I just wanted to confirm with your availability on {date} at {time}. Thank you. {Client Name}`
+- Uses tenant timezone for date/time formatting.
+- Extend `public_get_customer_portal` RPC to also return `staff.wa_number`.
 
-## Phase 5 — Calendar & meeting integrations
-Google Calendar, Outlook, Zoom, Google Meet — per-staff OAuth, two-way sync, auto-create meeting link on confirmation.
+## 4. Client + staff booking confirmation emails
 
-## Phase 6 — WhatsApp Cloud API
-Outbound confirmations/reminders + inbound webhook into the existing Inbox module.
+- Confirmation email to the **client** is already sent by the automation worker. Verify wiring by adding an explicit log line and ensuring `booking_created` triggers regardless of payment. No behavior change if working.
+- Add a per-staff "Personal email confirmed" flag inferred from `staff.email` presence — surfaced as a small pill in the staff list ("Email set" / "No personal email").
 
-## Phase 7 — Automation module
-`/automations` UI to configure triggers (booking confirmed, 24h before, payment overdue, post-visit review, follow-up campaign) → channels (WhatsApp, email, SMS). Stored as rules executed by the cron worker.
+## 5. "Send test confirmation" button (admin/owner)
 
-## Phase 8 — Analytics module
-`/analytics` with revenue, bookings, customer growth, service & staff performance, conversion funnel. Server-side aggregates, charts via Recharts.
+- In the Staff tab, per-row action button (visible to admin/owner only) that calls a new `sendStaffTestConfirmation` server function.
+- The server fn builds a fake booking payload for the staff member's assigned services (or a stub), respects their `notify_email_on_booking` / `notify_calendar_invite` preferences, and calls the same email/ICS renderer used by the worker. Also sends a copy to the **client-side** confirmation template addressed to a `test_recipient` email (defaults to the admin's own email) so both templates are verifiable in one click.
+- Returns `{ staff: {sent, skipped_reason}, client: {sent} }` so the toast shows exactly what happened.
 
-## Phase 9 — AI features (via Lovable AI Gateway, `google/gemini-3-flash-preview`)
-- AI Booking Assistant (chat that books on the public site).
-- AI Receptionist (auto-replies in Inbox).
-- AI Customer Summary (per-customer profile card).
-- AI Suggested Follow-Ups (per booking).
+## 6. One-way Google/Outlook push (foundation only)
 
-## Phase 10 — Polish pass
-Modernize cards/tables/forms, tighten visual hierarchy, accessibility, dark-mode audit, empty/loading/error states everywhere.
+- Extend `calendar_connections` UI in Settings > Integrations (moved from staff drawer) to accept an ICS feed URL per staff.
+- Confirmation emails already deliver `METHOD:REQUEST` ICS to staff — accepting them adds to their calendar. No OAuth this round (per your choice). Add clear copy in the Integrations tab explaining this and that OAuth-based two-way sync is coming.
 
-## Technical notes (for me, not blocking)
-- All new tables: `GRANT` + RLS scoped to `current_tenant_id()`; public booking surface uses narrow `TO anon` SELECT policies on a curated view, never the raw tables.
-- All app-internal calls = `createServerFn`. Webhooks/cron = `/api/public/*` server routes with signature verification.
-- Custom domain support reuses Lovable's existing domain plumbing per tenant.
+## 7. Vitest ICS timezone/DST tests
 
-## Question for you
-Do you want me to:
-**(A)** Do the positioning + country/currency fix **this turn**, then start Phase 1 next turn, **or**
-**(B)** Jump straight into Phase 1 (customer-facing booking flow) and bundle the rebrand into it?
+- Add `bun add -d vitest @vitest/coverage-v8`.
+- Add `vitest.config.ts` and `src/lib/__tests__/ics-invite.test.ts` covering `buildIcsInvite`:
+  - Africa/Lagos (no DST) — verifies UTC instant equals local time - 1h.
+  - Europe/London around BST start (2026-03-29 01:30 UTC) and end (2026-10-25 01:30 UTC).
+  - America/New_York around DST spring-forward (2026-03-08) and fall-back (2026-11-01).
+  - Assertion: `DTSTART`/`DTEND` are absolute UTC (`Z`-suffixed) and equal the expected UTC ISO for a booking scheduled at each tenant's local wall-clock time.
+- Extract `buildIcsInvite` from `run-automations.ts` into `src/lib/ics-invite.ts` so it's importable by tests and by the route handler.
 
-Also: any phase you want re-ordered or dropped? (E.g. if WhatsApp or Stripe is urgent, I'll move it earlier.)
+## 8. Hydration fix
+
+- `src/routes/auth.tsx` renders under `_authenticated`? No — it's public. Wrap client-only branch (any `typeof window` in Google OAuth logic) so SSR/CSR markup matches.
+
+## Technical notes
+
+- `/crm` uses TanStack Router `search` schema `{ tab: 'bookings' | 'customers' }` with `bookings` default.
+- Sidebar link count drops from ~11 to 7 for non-admins. Existing deep links like `/bookings` still work via redirect route files (`createFileRoute` → `beforeLoad: throw redirect`).
+- Migration is destructive for inbox tables — you confirmed drop.
+- No route file removals for `/staff`, `/automations`, `/schedule` yet: convert them to redirect files pointing to `/settings?tab=staff|automations|schedule` so any bookmarks still work.
+
+## Out of scope this round (per your answers)
+
+- Full two-way Google/Outlook OAuth sync (deferred).
+- Any changes to booking write path or public booking schema.
+
+Reply "go" to implement.

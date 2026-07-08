@@ -65,7 +65,7 @@ export const getCustomer = createServerFn({ method: "GET" })
     const tenantId = await tenantOf(context.supabase, context.userId);
     if (!tenantId) throw new Error("No tenant");
 
-    const [{ data: customer, error }, { data: bookings }, { data: messages }] = await Promise.all([
+    const [{ data: customer, error }, { data: bookings }] = await Promise.all([
       context.supabase.from("customers").select("*").eq("id", data.id).eq("tenant_id", tenantId).maybeSingle(),
       context.supabase
         .from("bookings")
@@ -74,13 +74,8 @@ export const getCustomer = createServerFn({ method: "GET" })
         .eq("tenant_id", tenantId)
         .order("starts_at", { ascending: false })
         .limit(20),
-      context.supabase
-        .from("messages")
-        .select("id, content, direction, created_at, delivery_status")
-        .eq("customer_id", data.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
     ]);
+    const messages: any[] = [];
     if (error) throw error;
     if (!customer) throw new Error("Customer not found");
 

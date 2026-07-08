@@ -30,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/customers")({
   component: CustomersPage,
 });
 
+export { CustomersPage };
+
 type Customer = {
   id: string;
   display_name: string;

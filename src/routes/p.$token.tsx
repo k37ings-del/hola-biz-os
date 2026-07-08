@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Calendar, Clock, MapPin, Phone, Mail, CheckCircle2, XCircle, Loader2, ExternalLink } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, Mail, CheckCircle2, XCircle, Loader2, ExternalLink, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
@@ -104,6 +104,15 @@ function PortalPage() {
 
           {booking.status !== "CANCELLED" && booking.status !== "COMPLETED" && (
             <div className="mt-5 flex flex-wrap gap-2">
+              {staff?.wa_number && (
+                <WhatsAppButton
+                  staffName={staff.name}
+                  waNumber={staff.wa_number}
+                  customerName={booking.customer_name}
+                  startsAt={startsAt}
+                  tenantTimezone={tenant.timezone}
+                />
+              )}
               <Button asChild variant="outline" size="sm">
                 <Link to="/reschedule/$token" params={{ token: booking.reschedule_token }}>Reschedule</Link>
               </Button>
@@ -144,6 +153,44 @@ function PortalPage() {
         Powered by <span className="font-display font-medium">HolaWeb Business OS</span>
       </footer>
     </div>
+  );
+}
+
+
+function WhatsAppButton({
+  staffName,
+  waNumber,
+  customerName,
+  startsAt,
+  tenantTimezone,
+}: {
+  staffName: string;
+  waNumber: string;
+  customerName: string;
+  startsAt: Date;
+  tenantTimezone?: string;
+}) {
+  const digits = waNumber.replace(/[^\d]/g, "");
+  const dateFmt = new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: tenantTimezone,
+  }).format(startsAt);
+  const timeFmt = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: tenantTimezone,
+  }).format(startsAt);
+  const text = `Hello ${staffName}, I just wanted to confirm with your availability on ${dateFmt} at ${timeFmt}. Thank you. ${customerName}`;
+  const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return (
+    <Button asChild size="sm" className="bg-[#25D366] hover:bg-[#1ebe5a] text-white">
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        <MessageCircle className="h-4 w-4 mr-1" /> Send a message on WhatsApp
+      </a>
+    </Button>
   );
 }
 

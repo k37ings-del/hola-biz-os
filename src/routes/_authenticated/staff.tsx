@@ -16,6 +16,7 @@ import {
   Trash2,
   CalendarDays,
   Star,
+  Send,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ import {
   deleteStaff,
   uploadStaffPhoto,
 } from "@/lib/staff.functions";
+import { sendStaffTestConfirmation } from "@/lib/staff-test-confirmation.functions";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({ meta: [{ title: "Staff · Holaweb Business OS" }] }),
@@ -142,6 +144,15 @@ function StaffPage() {
   const saveFn = useServerFn(upsertStaff);
   const toggleFn = useServerFn(setStaffActive);
   const removeFn = useServerFn(deleteStaff);
+  const testSendFn = useServerFn(sendStaffTestConfirmation);
+  const testSendMut = useMutation({
+    mutationFn: (staff_id: string) => testSendFn({ data: { staff_id } }),
+    onSuccess: (r: any) => {
+      const parts = (r?.results ?? []).map((x: any) => `${x.target}: ${x.sent ? "sent ✓" : x.skipped_reason ?? "skipped"}`).join(" · ");
+      toast.success(`Test sent (${r?.ref_code ?? ""}). ${parts}`);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Test send failed"),
+  });
 
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<"name" | "role" | "bookings">("name");
@@ -410,6 +421,13 @@ function StaffPage() {
                             >
                               <Power className="h-3.5 w-3.5 mr-2" />
                               {s.active ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => testSendMut.mutate(s.id)}
+                              disabled={testSendMut.isPending}
+                            >
+                              <Send className="h-3.5 w-3.5 mr-2" />Send test confirmation
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
