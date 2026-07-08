@@ -396,64 +396,6 @@ export type Database = {
           },
         ]
       }
-      conversations: {
-        Row: {
-          assigned_staff_id: string | null
-          created_at: string
-          customer_id: string
-          id: string
-          last_message: string | null
-          last_message_at: string | null
-          status: string
-          tenant_id: string
-          unread_count: number
-        }
-        Insert: {
-          assigned_staff_id?: string | null
-          created_at?: string
-          customer_id: string
-          id?: string
-          last_message?: string | null
-          last_message_at?: string | null
-          status?: string
-          tenant_id: string
-          unread_count?: number
-        }
-        Update: {
-          assigned_staff_id?: string | null
-          created_at?: string
-          customer_id?: string
-          id?: string
-          last_message?: string | null
-          last_message_at?: string | null
-          status?: string
-          tenant_id?: string
-          unread_count?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_assigned_staff_id_fkey"
-            columns: ["assigned_staff_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customers: {
         Row: {
           booking_count: number
@@ -598,95 +540,6 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      message_templates: {
-        Row: {
-          body: string
-          category: string
-          created_at: string
-          id: string
-          name: string
-          status: string
-          tenant_id: string
-        }
-        Insert: {
-          body: string
-          category?: string
-          created_at?: string
-          id?: string
-          name: string
-          status?: string
-          tenant_id: string
-        }
-        Update: {
-          body?: string
-          category?: string
-          created_at?: string
-          id?: string
-          name?: string
-          status?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "message_templates_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          content: string | null
-          conversation_id: string
-          created_at: string
-          customer_id: string | null
-          delivery_status: string
-          direction: string
-          id: string
-          message_type: string
-          meta: Json
-        }
-        Insert: {
-          content?: string | null
-          conversation_id: string
-          created_at?: string
-          customer_id?: string | null
-          delivery_status?: string
-          direction: string
-          id?: string
-          message_type?: string
-          meta?: Json
-        }
-        Update: {
-          content?: string | null
-          conversation_id?: string
-          created_at?: string
-          customer_id?: string | null
-          delivery_status?: string
-          direction?: string
-          id?: string
-          message_type?: string
-          meta?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -1292,6 +1145,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          staff_id: string | null
           supabase_auth_id: string
           tenant_id: string
         }
@@ -1302,6 +1156,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          staff_id?: string | null
           supabase_auth_id: string
           tenant_id: string
         }
@@ -1312,10 +1167,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          staff_id?: string | null
           supabase_auth_id?: string
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "users_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_tenant_id_fkey"
             columns: ["tenant_id"]
