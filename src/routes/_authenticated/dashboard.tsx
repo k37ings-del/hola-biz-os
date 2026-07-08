@@ -33,21 +33,19 @@ function DashboardPage() {
     enabled: !!tenantId,
     queryFn: async () => {
       const since = rangeStart(range).toISOString();
-      const [customers, convs, bookingsAll, bookingsConfirmed, pays, unpaid] = await Promise.all([
+      const [customers, bookingsAll, bookingsConfirmed, pays, unpaid] = await Promise.all([
         supabase.from("customers").select("id", { count: "exact", head: true }),
-        supabase.from("conversations").select("id", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("bookings").select("id", { count: "exact", head: true }),
         supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "CONFIRMED").gte("starts_at", since),
         supabase.from("payments").select("amount_cents,currency,status,paid_at").eq("status", "CONFIRMED").gte("paid_at", since),
         supabase.from("invoices").select("id", { count: "exact", head: true }).in("status", ["unpaid", "overdue"]),
       ]);
-      const revenue = (pays.data ?? []).reduce<Record<string, number>>((acc, p) => {
+      const revenue = ((pays.data ?? []) as any[]).reduce<Record<string, number>>((acc, p) => {
         acc[p.currency] = (acc[p.currency] ?? 0) + (p.amount_cents ?? 0);
         return acc;
       }, {});
       return {
         customers: customers.count ?? 0,
-        openConversations: convs.count ?? 0,
         totalBookings: bookingsAll.count ?? 0,
         confirmedBookings: bookingsConfirmed.count ?? 0,
         revenue,
