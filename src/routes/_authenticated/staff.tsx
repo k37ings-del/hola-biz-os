@@ -72,6 +72,7 @@ import {
   deleteStaff,
   uploadStaffPhoto,
 } from "@/lib/staff.functions";
+import { sendStaffTestConfirmation } from "@/lib/staff-test-confirmation.functions";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({ meta: [{ title: "Staff · Holaweb Business OS" }] }),
