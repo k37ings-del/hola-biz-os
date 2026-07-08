@@ -50,7 +50,7 @@ function toLocalInput(iso?: string) {
   return local.toISOString().slice(0, 16);
 }
 
-function BookingsPage() {
+export function BookingsPage() {
   const currency = useTenantCurrency();
   const { data: me } = useCurrentUser();
   const canDelete = ["owner", "admin"].includes((me?.user as any)?.role ?? "");
