@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Inbox, Users, Calendar, Briefcase, UserCog, Wallet, Settings, Shield, LogOut, Loader2, Zap, CalendarClock } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Wallet, Settings, Shield, LogOut, Loader2, FileText, CreditCard } from "lucide-react";
 import holawebLogo from "@/assets/holaweb-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -33,15 +33,11 @@ export const Route = createFileRoute("/_authenticated")({
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/calendar", label: "Calendar", icon: Calendar },
-  { to: "/inbox", label: "Inbox", icon: Inbox },
-  { to: "/bookings", label: "Bookings", icon: Calendar },
-  { to: "/customers", label: "Customers", icon: Users },
+  { to: "/crm", label: "CRM", icon: Users },
   { to: "/services", label: "Services", icon: Briefcase },
-  { to: "/staff", label: "Staff", icon: UserCog },
-  { to: "/schedule", label: "Schedule", icon: CalendarClock },
   { to: "/finance", label: "Finance", icon: Wallet },
-  { to: "/automations", label: "Automations", icon: Zap },
+  { to: "/invoices", label: "Invoices", icon: FileText },
+  { to: "/payments", label: "Payments", icon: CreditCard },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
