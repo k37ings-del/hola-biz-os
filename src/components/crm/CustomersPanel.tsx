@@ -25,9 +25,22 @@ import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
 import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV, deleteCustomers } from "@/lib/customers.functions";
 
+type Customer = {
+  id: string;
+  display_name: string;
+  wa_phone: string | null;
+  email: string | null;
+  status: string;
+  booking_count: number;
+  first_seen: string;
+  last_seen_at: string | null;
+  notes: string | null;
+  total_spent_cents: number;
+  last_booking_at: string | null;
+};
 
+export function CustomersPage() {
 
-function CustomersPage() {
   const currency = useTenantCurrency();
   const qc = useQueryClient();
   const fetchList = useServerFn(listCustomers);
