@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Users } from "lucide-react";
-import { BookingsPage } from "./bookings";
-import { CustomersPage } from "./customers";
+import { BookingsPage } from "@/components/crm/BookingsPanel";
+import { CustomersPage } from "@/components/crm/CustomersPanel";
 import { PageHeader } from "@/components/shell/PageHeader";
 
 const searchSchema = z.object({
