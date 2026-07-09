@@ -56,9 +56,8 @@ function AuthenticatedLayout() {
   }
 
   if (!data) {
-    // Authenticated but no profile yet — send to onboarding
-    navigate({ to: "/auth" });
-    return null;
+    // Authenticated but no profile yet — send to onboarding (in effect, not during render)
+    return <RedirectToAuth />;
   }
 
   const { user, tenant } = data;
