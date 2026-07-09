@@ -56,9 +56,8 @@ function AuthenticatedLayout() {
   }
 
   if (!data) {
-    // Authenticated but no profile yet — send to onboarding
-    navigate({ to: "/auth" });
-    return null;
+    // Authenticated but no profile yet — send to onboarding (in effect, not during render)
+    return <RedirectToAuth />;
   }
 
   const { user, tenant } = data;
@@ -140,6 +139,12 @@ function AuthenticatedLayout() {
       </div>
     </SidebarProvider>
   );
+}
+
+function RedirectToAuth() {
+  const navigate = useNavigate();
+  useEffect(() => { navigate({ to: "/auth" }); }, [navigate]);
+  return null;
 }
 
 function FaviconSetter({ href }: { href: string }) {
