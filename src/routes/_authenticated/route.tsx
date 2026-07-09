@@ -141,6 +141,12 @@ function AuthenticatedLayout() {
   );
 }
 
+function RedirectToAuth() {
+  const navigate = useNavigate();
+  useEffect(() => { navigate({ to: "/auth" }); }, [navigate]);
+  return null;
+}
+
 function FaviconSetter({ href }: { href: string }) {
   useEffect(() => {
     if (typeof document === "undefined" || !href) return;
