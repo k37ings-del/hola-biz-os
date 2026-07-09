@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -23,10 +22,7 @@ import { formatCurrency, formatDateTime, useTenantCurrency } from "@/lib/format"
 import { listBookings, upsertBooking, setBookingStatus, bookingFormOptions } from "@/lib/bookings.functions";
 import { deleteBookingOwn } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/bookings")({
-  head: () => ({ meta: [{ title: "Bookings · Holaweb Business OS" }] }),
-  component: BookingsPage,
-});
+
 
 const STATUSES = ["PENDING_PAYMENT", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW", "EXPIRED"] as const;
 
