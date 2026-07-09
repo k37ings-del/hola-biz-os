@@ -25,26 +25,7 @@ import { InitialsAvatar } from "@/components/shell/Avatar";
 import { formatCurrency, formatPhone, relativeTime, useTenantCurrency } from "@/lib/format";
 import { listCustomers, getCustomer, upsertCustomer, setCustomerStatus, updateCustomerNotes, importCustomersCSV, deleteCustomers } from "@/lib/customers.functions";
 
-export const Route = createFileRoute("/_authenticated/customers")({
-  head: () => ({ meta: [{ title: "Customers · Holaweb Business OS" }] }),
-  component: CustomersPage,
-});
 
-export { CustomersPage };
-
-type Customer = {
-  id: string;
-  display_name: string;
-  wa_phone: string | null;
-  email: string | null;
-  status: string;
-  booking_count: number;
-  first_seen: string;
-  last_seen_at: string | null;
-  notes: string | null;
-  total_spent_cents: number;
-  last_booking_at: string | null;
-};
 
 function CustomersPage() {
   const currency = useTenantCurrency();
